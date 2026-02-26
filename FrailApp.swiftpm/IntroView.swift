@@ -21,28 +21,40 @@ struct IntroView: View {
     @State private var titleShrunk = false
     @State private var earthVisible = false
     @State private var novaOrbitAngle: Double = 0
-    @State private var showOrbitNova = false
+    @State private var novaVisible = false
     @State private var showTapHint = false
     @State private var titlePulse = false
     @State private var tapHintPulse = false
     @State private var didTap = false
-    @State private var novaFlyX: CGFloat = 0
-    @State private var novaFlyY: CGFloat = 0
     @State private var showWelcome = false
     @State private var showContinue = false
     @State private var orbitTimer: Timer?
+    
+    // Nova position — single source of truth
+    @State private var novaX: CGFloat = 0
+    @State private var novaY: CGFloat = 0
+    @State private var novaSize: CGFloat = 36
+    
+    // Earth layout — kept in sync with geometry
+    @State private var earthCenterX: CGFloat = 0
+    @State private var earthCenterY: CGFloat = 0
+    @State private var orbitRadius: CGFloat = 340
     
     var body: some View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
             let earthCX = w / 2
-            let earthCY = h * 0.42
-            let orbitR: CGFloat = min(w, h) * 0.22
+            let earthCY = h * 0.48
+            let orbitR: CGFloat = 340
             
             ZStack {
                 // ── Black background ──
                 Color.frailBackground
+                    .ignoresSafeArea()
+                
+                // ── Stars ──
+                StarFieldView()
                     .ignoresSafeArea()
                 
                 // ── TITLE ──
@@ -51,14 +63,13 @@ struct IntroView: View {
                     .opacity(titlePulse ? 0.5 : 1.0)
                     .position(
                         x: w / 2,
-                        y: titleShrunk ? h * 0.07 : h / 2
+                        y: titleShrunk ? h * 0.07 : h * 0.52
                     )
                     .animation(.easeInOut(duration: 1.2), value: titleShrunk)
                 
                 // ── EARTH ──
                 if earthVisible {
                     ZStack {
-                        // Glow
                         Circle()
                             .fill(
                                 RadialGradient(
@@ -72,25 +83,28 @@ struct IntroView: View {
                                     endRadius: 180
                                 )
                             )
-                            .frame(width: 360, height: 360)
-                            .blur(radius: 10)
+                            .frame(width: 600, height: 600)
+                            .blur(radius: 12)
                         
                         EarthSceneView()
-                            .frame(width: 280, height: 280)
+                            .frame(width: 600, height: 600)
                             .clipShape(Circle())
                     }
                     .position(x: earthCX, y: earthCY)
                     .transition(.opacity)
                 }
                 
-                // ── NOVA orbiting ──
-                if showOrbitNova && !didTap {
-                    let nx = earthCX + orbitR * cos(novaOrbitAngle * .pi / 180)
-                    let ny = earthCY + orbitR * sin(novaOrbitAngle * .pi / 180)
-                    
-                    NovaView(state: .idle)
-                        .frame(width: 36, height: 36)
-                        .position(x: nx, y: ny)
+                // ═══════════════════════════════════════
+                // SINGLE NOVA — one continuous character
+                // Position is animated, never removed
+                // ═══════════════════════════════════════
+                if novaVisible {
+                    NovaView(state: didTap ? .speaking : .idle)
+                        .frame(width: novaSize, height: novaSize)
+                        .position(x: novaX, y: novaY)
+                        .animation(.spring(response: 0.8, dampingFraction: 0.72), value: novaX)
+                        .animation(.spring(response: 0.8, dampingFraction: 0.72), value: novaY)
+                        .animation(.easeInOut(duration: 0.3), value: novaSize)
                 }
                 
                 // ── Tap hint ──
@@ -100,41 +114,31 @@ struct IntroView: View {
                         .foregroundColor(.frailMutedText)
                         .tracking(2)
                         .opacity(tapHintPulse ? 0.3 : 1.0)
-                        .position(x: w / 2, y: h * 0.73)
+                        .position(x: w / 2, y: h * 0.93)
                 }
                 
-                // ── Nova flying after tap ──
-                if didTap && !showWelcome {
-                    NovaView(state: .speaking)
-                        .frame(width: 48, height: 48)
-                        .position(x: novaFlyX, y: novaFlyY)
-                }
-                
-                // ── Welcome + Continue ──
+                // ── Welcome bubble + Continue (no Nova here, it's above) ──
                 if showWelcome {
                     VStack(spacing: 20) {
                         Spacer()
                         
-                        HStack(alignment: .center, spacing: 14) {
-                            NovaView(state: .speaking)
-                                .frame(width: 48, height: 48)
-                            
-                            Text(NovaCopy.Intro.welcome)
-                                .font(.system(size: 15, weight: .regular, design: .rounded))
-                                .foregroundColor(.frailPrimaryText)
-                                .lineSpacing(4)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 14)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color.frailMentorBg)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 16)
-                                                .stroke(Color.frailMentorBorder, lineWidth: 1)
-                                        )
-                                )
-                        }
-                        .transition(.opacity.combined(with: .offset(y: 30)))
+                        // Speech bubble only — Nova is already positioned nearby
+                        Text(NovaCopy.Intro.welcome)
+                            .font(.system(size: 15, weight: .regular, design: .rounded))
+                            .foregroundColor(.frailPrimaryText)
+                            .lineSpacing(4)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.frailMentorBg)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .stroke(Color.frailMentorBorder, lineWidth: 1)
+                                    )
+                            )
+                            .padding(.leading, 70) // offset to the right of Nova
+                            .transition(.opacity.combined(with: .offset(y: 20)))
                         
                         if showContinue {
                             Button(action: onFinished) {
@@ -160,28 +164,32 @@ struct IntroView: View {
             .onTapGesture {
                 guard showTapHint && !didTap else { return }
                 
-                let nx = earthCX + orbitR * cos(novaOrbitAngle * .pi / 180)
-                let ny = earthCY + orbitR * sin(novaOrbitAngle * .pi / 180)
-                novaFlyX = nx
-                novaFlyY = ny
+                // Stop orbit
+                orbitTimer?.invalidate()
+                orbitTimer = nil
                 
+                // Hide tap hint
                 withAnimation(.easeOut(duration: 0.3)) {
                     showTapHint = false
                 }
+                
                 didTap = true
                 
-                let targetX = w * 0.18
-                let targetY = h * 0.78
-                withAnimation(.spring(response: 0.8, dampingFraction: 0.72)) {
-                    novaFlyX = targetX
-                    novaFlyY = targetY
-                }
+                // Grow Nova slightly
+                novaSize = 48
                 
+                // Fly Nova smoothly to bottom-left
+                novaX = 48
+                novaY = h - 120
+                
+                // Show welcome bubble after Nova arrives
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                         showWelcome = true
                     }
                 }
+                
+                // Show continue button
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                     withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                         showContinue = true
@@ -189,11 +197,18 @@ struct IntroView: View {
                 }
             }
             .onAppear {
-                beginSequence(earthCX: earthCX, earthCY: earthCY)
+                earthCenterX = earthCX
+                earthCenterY = earthCY
+                orbitRadius = orbitR
+                beginSequence()
             }
             .onDisappear {
                 orbitTimer?.invalidate()
                 orbitTimer = nil
+            }
+            .onChange(of: geo.size) { _ in
+                earthCenterX = geo.size.width / 2
+                earthCenterY = geo.size.height * 0.48
             }
         }
     }
@@ -214,19 +229,19 @@ struct IntroView: View {
         ZStack {
             // Wide bloom
             Text(char)
-                .font(.system(size: 72, weight: .heavy, design: .rounded))
+                .font(.system(size: 150, weight: .heavy, design: .rounded))
                 .foregroundColor(.frailAccent.opacity(0.25))
                 .blur(radius: 20)
             
             // Tight bloom
             Text(char)
-                .font(.system(size: 72, weight: .heavy, design: .rounded))
+                .font(.system(size: 150, weight: .heavy, design: .rounded))
                 .foregroundColor(.white.opacity(0.4))
                 .blur(radius: 6)
             
             // Sharp letter
             Text(char)
-                .font(.system(size: 72, weight: .heavy, design: .rounded))
+                .font(.system(size: 150, weight: .heavy, design: .rounded))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [.white, Color(red: 0.82, green: 0.88, blue: 1.0)],
@@ -243,7 +258,7 @@ struct IntroView: View {
     
     // MARK: - Animation sequence
     
-    private func beginSequence(earthCX: CGFloat, earthCY: CGFloat) {
+    private func beginSequence() {
         // t=0.3s — F zooms in
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation(.easeOut(duration: 0.5)) {
@@ -275,27 +290,30 @@ struct IntroView: View {
             }
         }
         
-        // t=2.3s — Title starts pulsing
+        // t=2.3s — Title starts slow breathing
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) {
-            withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+            withAnimation(.easeInOut(duration: 3.5).repeatForever(autoreverses: true)) {
                 titlePulse = true
             }
         }
         
-        // t=3.2s — Title shrinks to top, stop pulse
+        // t=3.2s — Title shrinks to top (pulse continues)
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
-            withAnimation(.easeInOut(duration: 1.2)) {
-                titlePulse = false
-            }
             titleShrunk = true
         }
         
-        // t=4.6s — Earth fades in + Nova starts orbiting
+        // t=4.6s — Earth fades in + Nova appears and starts orbiting
         DispatchQueue.main.asyncAfter(deadline: .now() + 4.6) {
             withAnimation(.easeIn(duration: 1.5)) {
                 earthVisible = true
             }
-            showOrbitNova = true
+            
+            // Set Nova's initial orbit position
+            let startAngle = 0.0
+            novaX = earthCenterX + orbitRadius * cos(startAngle * .pi / 180)
+            novaY = earthCenterY + orbitRadius * sin(startAngle * .pi / 180)
+            novaVisible = true
+            
             startOrbit()
         }
         
@@ -304,7 +322,7 @@ struct IntroView: View {
             withAnimation(.easeIn(duration: 0.5)) {
                 showTapHint = true
             }
-            withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+            withAnimation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true)) {
                 tapHintPulse = true
             }
         }
@@ -318,6 +336,9 @@ struct IntroView: View {
                 if novaOrbitAngle >= 360 {
                     novaOrbitAngle -= 360
                 }
+                // Read from @State — always in sync with Earth's actual center
+                novaX = earthCenterX + orbitRadius * cos(novaOrbitAngle * .pi / 180)
+                novaY = earthCenterY + orbitRadius * sin(novaOrbitAngle * .pi / 180)
             }
         }
     }

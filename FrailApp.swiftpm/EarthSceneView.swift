@@ -41,8 +41,8 @@ struct EarthSceneView: UIViewRepresentable {
         let lightNode = SCNNode()
         lightNode.light = SCNLight()
         lightNode.light?.type = .omni
-        lightNode.light?.intensity = 1400
-        lightNode.position = SCNVector3(x: -4, y: 3, z: 4)
+        lightNode.light?.intensity = 1200
+        lightNode.position = SCNVector3(x: -3, y: 2, z: 5)
         scene.rootNode.addChildNode(lightNode)
         
         // Fill light
@@ -80,11 +80,12 @@ final class EarthNode: SCNNode {
             
             // Texture names must match assets in the app bundle (e.g. in Assets.xcassets or EarthTextures folder).
             material.diffuse.contents = UIImage(named: "Diffuse")
-            material.specular.contents = UIImage(named: "Specular")
             material.emission.contents = UIImage(named: "Emission")
             material.normal.contents = UIImage(named: "Normal")
             
-            material.shininess = 50
+            // No specular — removes the bright white dot on oceans
+            material.specular.contents = nil
+            material.shininess = 0
             material.isDoubleSided = false
         }
         
