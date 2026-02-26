@@ -30,6 +30,7 @@ struct IntroView: View {
     @State private var novaFlyY: CGFloat = 0
     @State private var showWelcome = false
     @State private var showContinue = false
+    @State private var orbitTimer: Timer?
     
     var body: some View {
         GeometryReader { geo in
@@ -190,6 +191,10 @@ struct IntroView: View {
             .onAppear {
                 beginSequence(earthCX: earthCX, earthCY: earthCY)
             }
+            .onDisappear {
+                orbitTimer?.invalidate()
+                orbitTimer = nil
+            }
         }
     }
     
@@ -306,7 +311,8 @@ struct IntroView: View {
     }
     
     private func startOrbit() {
-        Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { _ in
+        orbitTimer?.invalidate()
+        orbitTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { _ in
             Task { @MainActor in
                 novaOrbitAngle += 0.35
                 if novaOrbitAngle >= 360 {

@@ -11,6 +11,7 @@ struct OrbitView: View {
     let gravityMultiplier: Double
     
     @State private var moonAngle: Double = 0
+    @State private var orbitTimer: Timer?
     
     var body: some View {
         GeometryReader { geometry in
@@ -43,6 +44,10 @@ struct OrbitView: View {
         .onAppear {
             startOrbit()
         }
+        .onDisappear {
+            orbitTimer?.invalidate()
+            orbitTimer = nil
+        }
         .onChange(of: gravityMultiplier) { _ in
             startOrbit()
         }
@@ -54,11 +59,13 @@ struct OrbitView: View {
     }
     
     private func startOrbit() {
+        orbitTimer?.invalidate()
+        
         // Orbital period decreases with stronger gravity
         let basePeriod: TimeInterval = 3.0
         let adjustedPeriod = basePeriod / sqrt(gravityMultiplier)
         
-        Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { _ in
+        orbitTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { _ in
             Task { @MainActor in
                 withAnimation(.linear(duration: 0.016)) {
                     let increment = 360.0 / (adjustedPeriod * 60.0) // 60 FPS

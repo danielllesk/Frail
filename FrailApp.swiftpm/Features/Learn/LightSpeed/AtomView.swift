@@ -11,6 +11,7 @@ struct AtomView: View {
     let speedOfLightMultiplier: Double
     
     @State private var electronAngle: Double = 0
+    @State private var animationTimer: Timer?
     
     var body: some View {
         GeometryReader { geometry in
@@ -52,6 +53,10 @@ struct AtomView: View {
         .onAppear {
             startElectronAnimation()
         }
+        .onDisappear {
+            animationTimer?.invalidate()
+            animationTimer = nil
+        }
         .onChange(of: speedOfLightMultiplier) { _ in
             startElectronAnimation()
         }
@@ -63,7 +68,9 @@ struct AtomView: View {
     }
     
     private func startElectronAnimation() {
-        Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { _ in
+        animationTimer?.invalidate()
+        
+        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { _ in
             Task { @MainActor in
                 withAnimation(.linear(duration: 0.016)) {
                     electronAngle += 2

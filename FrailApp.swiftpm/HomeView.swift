@@ -129,7 +129,7 @@ struct HomeView: View {
             HapticEngine.shared.playNovaSpeak()
         }
         
-        // Auto-dismiss Nova intro after 8 seconds
+        // Auto-dismiss Nova intro after 9 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 9.0) {
             withAnimation(.easeOut(duration: 0.4)) {
                 showNovaIntro = false

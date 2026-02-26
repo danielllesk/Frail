@@ -12,6 +12,7 @@ struct ClockView: View {
     let label: String
     
     @State private var rotation: Double = 0
+    @State private var clockTimer: Timer?
     
     var body: some View {
         VStack(spacing: 16) {
@@ -49,16 +50,22 @@ struct ClockView: View {
         .onAppear {
             startClock()
         }
+        .onDisappear {
+            clockTimer?.invalidate()
+            clockTimer = nil
+        }
         .onChange(of: timeMultiplier) { _ in
             startClock()
         }
     }
     
     private func startClock() {
+        clockTimer?.invalidate()
+        
         let baseInterval: TimeInterval = 1.0
         let adjustedInterval = baseInterval / timeMultiplier
         
-        Timer.scheduledTimer(withTimeInterval: adjustedInterval, repeats: true) { _ in
+        clockTimer = Timer.scheduledTimer(withTimeInterval: adjustedInterval, repeats: true) { _ in
             Task { @MainActor in
                 withAnimation(.linear(duration: adjustedInterval)) {
                     rotation += 6 // 6 degrees per second

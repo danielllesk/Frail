@@ -60,10 +60,8 @@ final class MotionManager: ObservableObject {
         manager.deviceMotionUpdateInterval = 1.0 / 60.0
         manager.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
             guard let motion = motion else { return }
-            Task { @MainActor in
-                self?.pitch = motion.attitude.pitch
-                self?.roll = motion.attitude.roll
-            }
+            self?.pitch = motion.attitude.pitch
+            self?.roll = motion.attitude.roll
         }
     }
     
