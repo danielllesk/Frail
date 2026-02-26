@@ -54,6 +54,10 @@ struct StarFieldView: View {
                     let dx = shootingStar.endX - shootingStar.startX
                     let dy = shootingStar.endY - shootingStar.startY
                     let dist = sqrt(dx * dx + dy * dy)
+                    
+                    // Guard against zero-length direction (prevents NaN)
+                    guard dist > 0.001 else { continue }
+                    
                     let nx = dx / dist * tailLength
                     let ny = dy / dist * tailLength
                     
@@ -86,6 +90,10 @@ struct StarFieldView: View {
                         with: .color(.white.opacity(alpha * 0.9))
                     )
                 }
+                
+                // Clean up expired shooting stars every frame
+                let cleanupTime = now
+                shootingStars.removeAll { cleanupTime - $0.startTime > $0.duration + 0.5 }
             }
         }
         .onAppear {

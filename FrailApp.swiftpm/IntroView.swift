@@ -34,6 +34,7 @@ struct IntroView: View {
     @State private var novaX: CGFloat = 0
     @State private var novaY: CGFloat = 0
     @State private var novaSize: CGFloat = 36
+    @State private var sequenceTask: Task<Void, Never>?
     
     // Earth layout — kept in sync with geometry
     @State private var earthCenterX: CGFloat = 0
@@ -205,6 +206,8 @@ struct IntroView: View {
             .onDisappear {
                 orbitTimer?.invalidate()
                 orbitTimer = nil
+                sequenceTask?.cancel()
+                sequenceTask = nil
             }
             .onChange(of: geo.size) { _ in
                 earthCenterX = geo.size.width / 2
@@ -259,66 +262,59 @@ struct IntroView: View {
     // MARK: - Animation sequence
     
     private func beginSequence() {
-        // t=0.3s — F zooms in
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.easeOut(duration: 0.5)) {
-                showLetter0 = true
-            }
-        }
-        // t=0.6s — R
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            withAnimation(.easeOut(duration: 0.5)) {
-                showLetter1 = true
-            }
-        }
-        // t=0.9s — A
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
-            withAnimation(.easeOut(duration: 0.5)) {
-                showLetter2 = true
-            }
-        }
-        // t=1.2s — I
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            withAnimation(.easeOut(duration: 0.5)) {
-                showLetter3 = true
-            }
-        }
-        // t=1.5s — L
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            withAnimation(.easeOut(duration: 0.5)) {
-                showLetter4 = true
-            }
-        }
-        
-        // t=2.3s — Title starts slow breathing
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) {
+        sequenceTask = Task { @MainActor in
+            // t=0.3s — F zooms in
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.5)) { showLetter0 = true }
+            
+            // t=0.6s — R
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.5)) { showLetter1 = true }
+            
+            // t=0.9s — A
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.5)) { showLetter2 = true }
+            
+            // t=1.2s — I
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.5)) { showLetter3 = true }
+            
+            // t=1.5s — L
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.5)) { showLetter4 = true }
+            
+            // t=2.3s — Title starts slow breathing
+            try? await Task.sleep(nanoseconds: 800_000_000)
+            guard !Task.isCancelled else { return }
             withAnimation(.easeInOut(duration: 3.5).repeatForever(autoreverses: true)) {
                 titlePulse = true
             }
-        }
-        
-        // t=3.2s — Title shrinks to top (pulse continues)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
+            
+            // t=3.2s — Title shrinks to top
+            try? await Task.sleep(nanoseconds: 900_000_000)
+            guard !Task.isCancelled else { return }
             titleShrunk = true
-        }
-        
-        // t=4.6s — Earth fades in + Nova appears and starts orbiting
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4.6) {
+            
+            // t=4.6s — Earth fades in + Nova orbits
+            try? await Task.sleep(nanoseconds: 1_400_000_000)
+            guard !Task.isCancelled else { return }
             withAnimation(.easeIn(duration: 1.5)) {
                 earthVisible = true
             }
-            
-            // Set Nova's initial orbit position
             let startAngle = 0.0
             novaX = earthCenterX + orbitRadius * cos(startAngle * .pi / 180)
             novaY = earthCenterY + orbitRadius * sin(startAngle * .pi / 180)
             novaVisible = true
-            
             startOrbit()
-        }
-        
-        // t=6.5s — "Tap anywhere" appears
-        DispatchQueue.main.asyncAfter(deadline: .now() + 6.5) {
+            
+            // t=6.5s — "Tap anywhere" appears
+            try? await Task.sleep(nanoseconds: 1_900_000_000)
+            guard !Task.isCancelled else { return }
             withAnimation(.easeIn(duration: 0.5)) {
                 showTapHint = true
             }

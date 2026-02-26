@@ -8,6 +8,7 @@ struct HomeView: View {
     
     @State private var showNovaIntro = false
     @State private var cardsVisible = false
+    @State private var hasAnimated = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -111,6 +112,8 @@ struct HomeView: View {
                 .frame(height: 40)
         }
         .onAppear {
+            guard !hasAnimated else { return }
+            hasAnimated = true
             startEntryAnimation()
         }
     }
