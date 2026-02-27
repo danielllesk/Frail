@@ -13,7 +13,7 @@ struct AppRootView: View {
     @StateObject private var nova = NovaController()
     
     var body: some View {
-        GeometryReader { geo in
+        GeometryReader { _ in
             ZStack {
                 if hasSeenIntro {
                     RootView()
@@ -32,6 +32,7 @@ struct AppRootView: View {
                 // ═══════════════════════════════════════
                 if nova.visible {
                     NovaView(state: nova.state)
+                        .id(nova.state)
                         .frame(width: nova.size, height: nova.size)
                         .position(x: nova.x, y: nova.y)
                 }

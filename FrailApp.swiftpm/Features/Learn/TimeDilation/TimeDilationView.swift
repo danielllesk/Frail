@@ -18,7 +18,7 @@ struct TimeDilationView: View {
     @State private var novaMessage = ""
     
     var body: some View {
-        GeometryReader { geo in
+        GeometryReader { _ in
             ZStack {
                 VStack(spacing: 32) {
                     // Alice and Bob split screen
@@ -132,6 +132,7 @@ struct TimeDilationView: View {
                                 )
                             SpeechBubbleView(text: novaMessage) {
                                 showNovaBubble = false
+                                nova.state = .idle
                             }
                             Spacer()
                         }

@@ -17,7 +17,7 @@ struct GravityView: View {
     @State private var novaMessage = ""
     
     var body: some View {
-        GeometryReader { geo in
+        GeometryReader { _ in
             ZStack {
                 VStack(spacing: 32) {
                     // Earth and Moon orbit visualization
@@ -104,6 +104,7 @@ struct GravityView: View {
                                 )
                             SpeechBubbleView(text: novaMessage) {
                                 showNovaBubble = false
+                                nova.state = .idle
                             }
                             Spacer()
                         }

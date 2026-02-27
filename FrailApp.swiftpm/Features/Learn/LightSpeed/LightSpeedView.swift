@@ -19,7 +19,7 @@ struct LightSpeedView: View {
     @State private var blueshiftTint: Double = 0.0
     
     var body: some View {
-        GeometryReader { geo in
+        GeometryReader { _ in
             ZStack {
                 // Background tint for redshift/blueshift
                 Color(red: redshiftTint, green: 0, blue: blueshiftTint)
@@ -111,6 +111,7 @@ struct LightSpeedView: View {
                                 )
                             SpeechBubbleView(text: novaMessage) {
                                 showNovaBubble = false
+                                nova.state = .idle
                             }
                             Spacer()
                         }

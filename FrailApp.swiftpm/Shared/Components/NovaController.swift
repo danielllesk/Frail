@@ -11,7 +11,7 @@ import SwiftUI
 
 /// Reports the center of the Nova spacer slot so Nova follows layout changes.
 struct NovaSlotPreferenceKey: PreferenceKey {
-    nonisolated(unsafe) static var defaultValue: CGPoint = .zero
+    static var defaultValue: CGPoint { .zero }
     static func reduce(value: inout CGPoint, nextValue: () -> CGPoint) {
         value = nextValue()
     }
@@ -87,7 +87,7 @@ final class NovaController: ObservableObject {
         visible = true
         
         orbitTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] _ in
-            Task { @MainActor in
+            DispatchQueue.main.async {
                 guard let self = self, self.isOrbiting else { return }
                 self.orbitAngle += speed
                 if self.orbitAngle >= 360 {
