@@ -40,23 +40,25 @@ struct NovaCopy {
         static let summary = "This is not science fiction. It is time dilation — confirmed by atomic clocks on aircraft. Speed warps time itself."
     }
     
-    // MARK: - Learn — Lesson 2: Gravity & Orbits
+    // MARK: - Chapter 1: Gravity — The Architect
     struct Gravity {
-        static let entry = "Gravity is the universe's architect. It holds moons in place and stars in galaxies."
+        static let entry = "One second after the beginning, the universe was a cloud. Hydrogen and helium — the two simplest elements — stretched across billions of kilometres. Evenly spread. No structure. No direction. Just gas, cooling in the dark."
         
-        static func slider(at multiplier: Double) -> String {
-            if multiplier < 0.2 {
-                return "Weak gravity. The Moon drifts. Orbits require a precise balance of speed and pull."
-            } else if multiplier < 1.5 {
-                return "Earth's gravity. The Moon traces its familiar path. This balance took billions of years to settle."
-            } else if multiplier < 3.0 {
-                return "Doubled gravity. The orbit tightens. The Moon accelerates. Tidal forces increase."
-            } else {
-                return "Extreme gravity. The Moon spirals inward. Given time, it would be torn apart."
-            }
-        }
+        static let lowGravityPrompt = "Gravity is what turns nothing into something. Pull the slider down. See what happens when gravity is too weak to do its work."
         
-        static let summary = "Orbital mechanics are exquisitely tuned. Earth's Moon exists because gravity and velocity found an equilibrium. Rare in the cosmos."
+        static let lowGravity = "Without enough gravity, the cloud never collapses. The gas drifts apart — thinning, cooling, fading into nothing. No stars. No carbon. No chemistry. The universe expands forever and dies without ever becoming anything that wonders about it."
+        
+        static let highGravityPrompt = "Now push it too far. See the other way this fails."
+        
+        static let highGravity = "Too much gravity and the collapse is violent. Stars form fast — and burn out faster. A star like our Sun survives for ten billion years. Under high gravity, it survives for millions. Life needs billions of years to emerge. Millions is not enough. The universe becomes briefly bright, then dark forever."
+        
+        static let rightGravityPrompt = "Now find the value this universe chose. The one that led to stars, to planets, to you."
+        
+        static let rightGravity = "At this value, the collapse is controlled. Stars ignite and burn steadily for billions of years. Our Sun has been burning for 4.6 billion years and has roughly 5 billion remaining. Long enough for planets to cool. Long enough for chemistry to try, and fail, and try again. Long enough for something to eventually look up."
+        
+        static let starfield = "Every atom in your body was forged inside one of these stars. The calcium in your bones. The iron in your blood. The oxygen you are breathing right now. Stars made all of it — then died to release it. Gravity made the stars. Gravity made you. It just took several billion years to admit it."
+        
+        static let closing = "The gravitational constant is 6.674 × 10⁻¹¹ N⋅m²⋅kg⁻². Change it by a few percent in either direction and none of this happens. Remember that number. In Build, gravity will be yours to choose. I have seen what happens when you don't choose carefully."
     }
     
     // MARK: - Learn — Lesson 3: The Speed of Light

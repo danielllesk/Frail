@@ -8,6 +8,7 @@
 //
 
 import SwiftUI
+import QuartzCore
 
 /// Reports the center of the Nova spacer slot so Nova follows layout changes.
 struct NovaSlotPreferenceKey: PreferenceKey {
@@ -18,7 +19,7 @@ struct NovaSlotPreferenceKey: PreferenceKey {
 }
 
 @MainActor
-final class NovaController: ObservableObject {
+final class NovaController: NSObject, ObservableObject {
     // Position & appearance
     @Published var x: CGFloat = 0
     @Published var y: CGFloat = 0
@@ -27,12 +28,13 @@ final class NovaController: ObservableObject {
     @Published var visible: Bool = false
     
     // Orbit
-    private var orbitTimer: Timer?
+    private var displayLink: CADisplayLink?
     private var orbitAngle: Double = 0
     private var orbitCX: CGFloat = 0
     private var orbitCY: CGFloat = 0
     private var orbitR: CGFloat = 0
-    private var isOrbiting: Bool = false  // guards against Task race
+    private var orbitSpeed: Double = 0.35
+    private(set) var isOrbiting: Bool = false
     
     /// Fly Nova to a target position with spring animation.
     func flyTo(
@@ -77,6 +79,7 @@ final class NovaController: ObservableObject {
         orbitCX = cx
         orbitCY = cy
         orbitR = radius
+        orbitSpeed = speed
         orbitAngle = 0
         isOrbiting = true
         
@@ -86,17 +89,18 @@ final class NovaController: ObservableObject {
         state = .idle
         visible = true
         
-        orbitTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] _ in
-            DispatchQueue.main.async {
-                guard let self = self, self.isOrbiting else { return }
-                self.orbitAngle += speed
-                if self.orbitAngle >= 360 {
-                    self.orbitAngle -= 360
-                }
-                self.x = self.orbitCX + self.orbitR * cos(self.orbitAngle * .pi / 180)
-                self.y = self.orbitCY + self.orbitR * sin(self.orbitAngle * .pi / 180)
-            }
-        }
+        // CADisplayLink fires on vsync, added to main RunLoop
+        let link = CADisplayLink(target: self, selector: #selector(orbitTick))
+        link.add(to: .main, forMode: .common)
+        displayLink = link
+    }
+    
+    @objc private func orbitTick() {
+        guard isOrbiting else { return }
+        orbitAngle += orbitSpeed
+        if orbitAngle >= 360 { orbitAngle -= 360 }
+        x = orbitCX + orbitR * cos(orbitAngle * .pi / 180)
+        y = orbitCY + orbitR * sin(orbitAngle * .pi / 180)
     }
     
     /// Update the orbit center (e.g. when geometry changes).
@@ -108,8 +112,8 @@ final class NovaController: ObservableObject {
     /// Stop orbiting.
     func stopOrbit() {
         isOrbiting = false
-        orbitTimer?.invalidate()
-        orbitTimer = nil
+        displayLink?.invalidate()
+        displayLink = nil
     }
     
     /// Hide Nova (used during initial blank phase).

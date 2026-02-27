@@ -2,31 +2,35 @@
 //  LearnContainerView.swift
 //  Frail
 //
-//  Lesson progression, progress dots, transitions
+//  Lesson progression — Chapter 1 → 2 → 3, with back navigation.
 //
 
 import SwiftUI
 
 enum Lesson: Int, CaseIterable, Identifiable {
-    case timeDilation = 1
-    case gravity = 2
-    case lightSpeed = 3
+    case gravity = 1
+    case lightSpeed = 2
+    case time = 3
     
     var id: Int { rawValue }
     
     var title: String {
         switch self {
-        case .timeDilation: return "Time"
         case .gravity: return "Gravity"
-        case .lightSpeed: return "Light Speed"
+        case .lightSpeed: return "Light"
+        case .time: return "Time"
         }
+    }
+    
+    var chapter: String {
+        "Chapter \(rawValue)"
     }
 }
 
 struct LearnContainerView: View {
     let onComplete: () -> Void
     
-    @State private var currentLesson: Lesson = .timeDilation
+    @State private var currentLesson: Lesson = .gravity
     @State private var completedLessons: Set<Lesson> = []
     
     var body: some View {
@@ -38,23 +42,42 @@ struct LearnContainerView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Progress indicator
-                HStack(spacing: 8) {
-                    ForEach(Lesson.allCases) { lesson in
-                        Circle()
-                            .fill(lessonState(for: lesson))
-                            .frame(width: 8, height: 8)
+                // ── Header: back button + progress dots ──
+                HStack {
+                    // Back button
+                    Button(action: goBack) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 14, weight: .semibold))
+                            Text(backLabel)
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                        }
+                        .foregroundColor(.frailMutedText)
                     }
+                    .buttonStyle(.plain)
+                    
+                    Spacer()
+                    
+                    // Progress dots
+                    HStack(spacing: 8) {
+                        ForEach(Lesson.allCases) { lesson in
+                            Circle()
+                                .fill(dotColor(for: lesson))
+                                .frame(width: 8, height: 8)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Invisible balance for centering
+                    Color.clear.frame(width: 60, height: 1)
                 }
+                .padding(.horizontal, 24)
                 .padding(.top, 16)
                 
-                // Lesson content
+                // ── Lesson content ──
                 Group {
                     switch currentLesson {
-                    case .timeDilation:
-                        TimeDilationView(
-                            onComplete: { completeLesson(.timeDilation) }
-                        )
                     case .gravity:
                         GravityView(
                             onComplete: { completeLesson(.gravity) }
@@ -63,14 +86,41 @@ struct LearnContainerView: View {
                         LightSpeedView(
                             onComplete: { completeLesson(.lightSpeed) }
                         )
+                    case .time:
+                        TimeDilationView(
+                            onComplete: { completeLesson(.time) }
+                        )
                     }
                 }
                 .transition(.opacity.combined(with: .move(edge: .trailing)))
             }
         }
+        .animation(.spring(response: 0.5, dampingFraction: 0.75), value: currentLesson)
     }
     
-    private func lessonState(for lesson: Lesson) -> Color {
+    // MARK: - Navigation
+    
+    private var backLabel: String {
+        if currentLesson == .gravity {
+            return "Home"
+        } else if let prev = Lesson(rawValue: currentLesson.rawValue - 1) {
+            return prev.title
+        }
+        return "Back"
+    }
+    
+    private func goBack() {
+        if currentLesson == .gravity {
+            // First lesson → go home
+            onComplete()
+        } else if let prev = Lesson(rawValue: currentLesson.rawValue - 1) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) {
+                currentLesson = prev
+            }
+        }
+    }
+    
+    private func dotColor(for lesson: Lesson) -> Color {
         if completedLessons.contains(lesson) {
             return .frailEmerald
         } else if lesson == currentLesson {
