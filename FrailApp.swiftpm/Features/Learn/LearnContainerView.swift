@@ -61,6 +61,25 @@ struct LearnContainerView: View {
                         .buttonStyle(.plain)
                         
                         Spacer()
+                        
+                        // Skip button
+                        Button(action: { 
+                            if let next = Lesson(rawValue: currentLesson.rawValue + 1) {
+                                withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) {
+                                    currentLesson = next
+                                }
+                            } else {
+                                onComplete()
+                            }
+                        }) {
+                            Text("Skip")
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .foregroundColor(.frailMutedText)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Capsule().stroke(Color.frailMutedText.opacity(0.3), lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
                     }
                     
                     // Progress dots centered in the entire header width
@@ -89,7 +108,7 @@ struct LearnContainerView: View {
                             onComplete: { completeLesson(.lightSpeed) }
                         )
                     case .time:
-                        TimeDilationView(
+                        TimeView(
                             onComplete: { completeLesson(.time) }
                         )
                     }
