@@ -98,7 +98,37 @@ struct NovaCopy {
         static let summary = "Three constants. Gravity, light speed, time. Each precise. Each load-bearing. You have seen all three. Now build something with them."
     }
     
-    // Compatibility for TimeDilationView
+    // MARK: - Build — The Architect
+    struct Build {
+        static let entry = "Our universe scores 94. Let's see how close you can get."
+        static let stable = "Structure holds. Given time, complexity may emerge here."
+        static let marginal = "Fragile equilibrium. This universe survives — barely."
+        static let unstable = "The orbits decay within millions of years. No time for life."
+        static let collapse = "This universe collapses. Nothing endures here."
+        
+        static func feedback(score: Double) -> String {
+            if score >= 85 { return "Close. The universe took 13.8 billion years to get here. You took three minutes." }
+            if score >= 70 { return "Respectable. Life might find a way — but it would be harder than ours." }
+            if score >= 50 { return "Marginal. Simpler organisms, perhaps. Nothing that builds or wonders." }
+            return "94 points separate your universe from ours. Each one matters."
+        }
+    }
+    
+    // MARK: - Challenge — The Judge
+    struct Challenge {
+        static let intro = "You built a universe. Now look at one that didn't make it."
+        static let deadUniverseIntro = "A system in ruins. Three clues to its failure. Can you diagnose the cause?"
+        static let rapidFireIntro = "Three rounds. Three sets of constants. Is life possible?"
+        static let completion = "Your understanding of the constants is what allows you to exist within them."
+    }
+    
+    // MARK: - Witness — The Spectacle
+    struct Witness {
+        static let entry = "You don't need to do anything here. Just watch. This is what the universe does with time and gravity when nothing stops it."
+        static let closing = "Collision is not just destruction. It is a redistribution. A rearrangement. A new beginning."
+    }
+    
+    // Compatibility for mapping
     struct TimeDilation {
         static let entry = Time.entry
         static func slider(at: Double) -> String { Time.slider(at: at) }
