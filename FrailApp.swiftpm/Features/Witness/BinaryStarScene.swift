@@ -115,13 +115,13 @@ struct BinaryStarScene: UIViewRepresentable {
             
             nebula.isHidden = false
             nebula.opacity = 1.0
-            nebula.scale = SCNVector3(4.0, 4.0, 4.0)
+            nebula.scale = SCNVector3(3.0, 3.0, 3.0) // Reduced from 4.0 to feel less "zoomed in"
             
             ring.isHidden = false
             ring.opacity = 0.8
             ring.scale = SCNVector3(30, 30, 30)
             
-            cameraNode.position = SCNVector3(0, 8, 55)
+            cameraNode.position = SCNVector3(0, 8, 85) // Pulled back from 55 to 85 for grander scale
         } else {
             starA.isHidden = false
             starB.isHidden = false
@@ -201,9 +201,13 @@ struct BinaryStarScene: UIViewRepresentable {
         } else {
             mat.diffuse.contents = UIColor.black
         }
-        mat.emission.intensity = 1.0
+        mat.emission.intensity = 0.7 
         mat.isDoubleSided = true
         mat.blendMode = SCNBlendMode.screen
+        
+        // FRESNEL EFFECT for soft edges
+        mat.fresnelExponent = 2.0
+        
         sphere.materials = [mat]
         
         let node = SCNNode(geometry: sphere)
@@ -240,7 +244,7 @@ struct BinaryStarScene: UIViewRepresentable {
         let sphere = SCNSphere(radius: 1.6)
         let mat = SCNMaterial()
         mat.diffuse.contents = UIColor.clear
-        mat.emission.contents = UIColor(white: 0.3, alpha: 1.0) // Safe gray instead of translucent white
+        mat.emission.contents = UIColor(white: 0.3, alpha: 1.0)
         mat.blendMode = SCNBlendMode.add
         sphere.materials = [mat]
         return SCNNode(geometry: sphere)
@@ -269,6 +273,7 @@ struct BinaryStarScene: UIViewRepresentable {
             stream.birthRate = 600
             stream.particleLifeSpan = 0.6
             stream.particleVelocity = 6.0
+            stream.emissionDirection = SCNVector3(0, 0, -1) // ALIGN WITH SCENEOBJECT LOOK-AT (NEGATIVE Z)
             stream.blendMode = SCNParticleBlendMode.additive
             container.addParticleSystem(stream)
         }

@@ -23,9 +23,15 @@ final class WitnessViewModel: ObservableObject {
     // Camera / Focus states
     @Published var highlightedStar: String? = nil // "starA", "starB", or nil
     
+    private var cinematicTask: Task<Void, Never>?
+    
     init() {
         self.novaText = NovaCopy.Witness.intro
         syncStep()
+    }
+    
+    deinit {
+        cinematicTask?.cancel()
     }
     
     // MARK: - Step Mapping
@@ -45,7 +51,7 @@ final class WitnessViewModel: ObservableObject {
             StepData(text: NovaCopy.Witness.starB, progress: 0.2, isSlider: false, focus: "starB"), // 3
             StepData(text: NovaCopy.Witness.starBClose, progress: 0.3, isSlider: false, focus: "starB"), // 4
             StepData(text: NovaCopy.Witness.approach30, progress: 0.3, isSlider: true, focus: nil), // 5 (Slider)
-            StepData(text: NovaCopy.Witness.flash, progress: 1.0, isSlider: false, focus: nil), // 6 (Supernova)
+            StepData(text: NovaCopy.Witness.flash, progress: 1.0, isSlider: false, focus: nil), // 6 (Supernova Flash)
             StepData(text: NovaCopy.Witness.hubble, progress: 1.0, isSlider: false, focus: nil), // 7
             StepData(text: NovaCopy.Witness.yangWeide, progress: 1.0, isSlider: false, focus: nil), // 8
             StepData(text: NovaCopy.Witness.lightDelay, progress: 1.0, isSlider: false, focus: nil), // 9
@@ -57,7 +63,7 @@ final class WitnessViewModel: ObservableObject {
     
     var isSliderPhase: Bool { currentStep == 5 }
     var hasBack: Bool { currentStep > 0 && !isSupernovaTriggered }
-    var hasNext: Bool { !isSliderPhase && currentStep < steps.count - 1 }
+    var hasNext: Bool { !isSliderPhase && currentStep < steps.count - 1 && !isSupernovaTriggered }
     
     // MARK: - Navigation
     
@@ -102,14 +108,28 @@ final class WitnessViewModel: ObservableObject {
         // Supernova Logic
         if currentStep >= 6 {
             triggerSupernova()
+            startCinematicAutoAdvance()
         } else {
             isSupernovaTriggered = false
             showContinue = false
             isExpanding = false
+            cinematicTask?.cancel()
         }
         
         if currentStep == steps.count - 1 {
             showContinue = true
+            cinematicTask?.cancel() // Stop at the last step
+        }
+    }
+    
+    private func startCinematicAutoAdvance() {
+        guard cinematicTask == nil else { return }
+        cinematicTask = Task {
+            while currentStep < steps.count - 1 {
+                try? await Task.sleep(nanoseconds: 6_000_000_000) // 6 seconds per beat
+                if Task.isCancelled { break }
+                await next()
+            }
         }
     }
     
