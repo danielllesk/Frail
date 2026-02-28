@@ -28,13 +28,17 @@ final class NovaController: NSObject, ObservableObject {
     @Published var visible: Bool = false
     
     // Orbit
-    private var displayLink: CADisplayLink?
+    private nonisolated(unsafe) var displayLink: CADisplayLink?
     private var orbitAngle: Double = 0
     private var orbitCX: CGFloat = 0
     private var orbitCY: CGFloat = 0
     private var orbitR: CGFloat = 0
     private var orbitSpeed: Double = 0.35
     private(set) var isOrbiting: Bool = false
+    
+    deinit {
+        displayLink?.invalidate()
+    }
     
     /// Fly Nova to a target position with spring animation.
     func flyTo(
@@ -95,10 +99,17 @@ final class NovaController: NSObject, ObservableObject {
         displayLink = link
     }
     
-    @objc private func orbitTick() {
+    @objc private func orbitTick(link: CADisplayLink) {
         guard isOrbiting else { return }
-        orbitAngle += orbitSpeed
+        
+        // Use delta time for frame-rate independence (target angular speed: orbitSpeed degrees per frame at 60Hz)
+        // normalizedSpeed = degrees per second
+        let normalizedSpeed = orbitSpeed * 60.0
+        let deltaTime = link.targetTimestamp - link.timestamp
+        
+        orbitAngle += normalizedSpeed * deltaTime
         if orbitAngle >= 360 { orbitAngle -= 360 }
+        
         x = orbitCX + orbitR * cos(orbitAngle * .pi / 180)
         y = orbitCY + orbitR * sin(orbitAngle * .pi / 180)
     }

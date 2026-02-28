@@ -48,25 +48,21 @@ struct AtomView: View {
                     let time = timeline.date.timeIntervalSinceReferenceDate
                     
                     // Universal scale mapping: r ∝ c
-                    // CLAMPED SCALING: We cap at 2.0 to keep it on screen, 
+                    // CLAMPED SCALING: We cap at 3.5 to keep it on screen, 
                     // but we'll use jitter/speed to show the "violent energy" above that.
                     let atomScale = CGFloat(min(3.5, max(0.15, c))) 
                     
                     // 1. Draw Nucleus
-                    // The nucleus is a cluster of seeds. Their positions are relative to center.
                     for seed in nucleusSeeds {
-                        // Offset from center is also scaled by atomScale
                         let offsetX = CGFloat(seed.x - 0.5) * 60 * atomScale
                         let offsetY = CGFloat(seed.y - 0.5) * 60 * atomScale
                         
                         let px = center.x + offsetX
                         let py = center.y + offsetY
                         
-                        // Particle size also scales with atomScale
                         let baseR = CGFloat(seed.size) * atomScale
                         
-                        // Jitter only at extremes, and very subtle
-                        // NATURAL JITTER: Independent X/Y phases
+                        // Jitter only at extremes
                         let jitterAmount: CGFloat = (c < 0.4 || c > 4.0) ? 2.5 * atomScale : 0.0
                         let jX = jitterAmount * CGFloat(sin(time * 30 + seed.x * 100))
                         let jY = jitterAmount * CGFloat(cos(time * 27 + seed.y * 137))
@@ -84,7 +80,6 @@ struct AtomView: View {
                     }
                     
                     // 2. Draw Electron Shells
-                    // Shells scale their radius by atomScale
                     drawShell(context: context, center: center, atomScale: atomScale, baseRadius: 60, count: 2, c: c, time: time)
                     drawShell(context: context, center: center, atomScale: atomScale, baseRadius: 110, count: 4, c: c, time: time)
                 }
@@ -95,12 +90,11 @@ struct AtomView: View {
     private func drawShell(context: GraphicsContext, center: CGPoint, atomScale: CGFloat, baseRadius: CGFloat, count: Int, c: Double, time: TimeInterval) {
         let radius = baseRadius * atomScale
         
-        // Dissolve effect at extremes
         let alpha: Double
         if c < 0.2 {
             alpha = max(0, (c - 0.1) / 0.1) // Dissolve at low c
         } else if c > 4.0 {
-            alpha = max(0.4, 1.0 - (c - 4.0) / 2.0) // Faint instability at high c
+            alpha = max(0.4, 1.0 - (c - 4.0) / 2.0) // Faint instability
         } else {
             alpha = 1.0
         }
@@ -113,7 +107,6 @@ struct AtomView: View {
         context.stroke(path, with: .color(.frailMutedText.opacity(0.15 * alpha)), lineWidth: 1)
         
         // Electrons
-        // Visual speed: frantic at high c, slow/drifting at low c
         let speed = 0.8 + (1.2 * c / 5.0) 
         
         for i in 0..<count {
@@ -124,10 +117,8 @@ struct AtomView: View {
             let eSize: CGFloat = 3 * (atomScale > 1.0 ? 1.0 : atomScale) 
             let eRect = CGRect(x: ex - eSize, y: ey - eSize, width: eSize * 2, height: eSize * 2)
             
-            // Electron core
             context.fill(Circle().path(in: eRect), with: .color(.white.opacity(alpha)))
             
-            // Electron glow
             let glowR = eSize * 3
             let glowRect = CGRect(x: ex - glowR, y: ey - glowR, width: glowR * 2, height: glowR * 2)
             context.fill(Circle().path(in: glowRect), with: .color(.frailAccent.opacity(0.4 * alpha)))

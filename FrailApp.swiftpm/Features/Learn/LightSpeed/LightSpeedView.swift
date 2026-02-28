@@ -34,6 +34,8 @@ struct LightSpeedView: View {
     @State private var entryDone = false
     @State private var phaseTriggered = false
     @State private var supernovaTriggered = false
+    @State private var sequenceTask: Task<Void, Never>? = nil
+    @State private var novaTask: Task<Void, Never>? = nil
     
     var body: some View {
         GeometryReader { geo in
@@ -202,14 +204,22 @@ struct LightSpeedView: View {
             .onAppear {
                 guard !entryDone else { return }
                 entryDone = true
-                beginPhase0()
+                sequenceTask = Task {
+                    await beginPhase0()
+                }
+            }
+            .onDisappear {
+                sequenceTask?.cancel()
+                sequenceTask = nil
+                novaTask?.cancel()
+                novaTask = nil
             }
         }
     }
     
     // MARK: - Phase Logic
     
-    private func beginPhase0() {
+    private func beginPhase0() async {
         phase = 0
         withAnimation(.easeIn(duration: 0.6)) {
             chapterLabel = "Light Speed"
@@ -221,62 +231,76 @@ struct LightSpeedView: View {
         atomOpacity = 0.0
         
         // 1. Zoom in animation — Aggressive tunnel effect
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            withAnimation(.easeInOut(duration: 2.0)) {
-                // High scale + fade for the rush feel
-                starScale = 80.0 
-                starOpacity = 0.0
-            }
-            
-            // Fading atom in midway through (t=1.0) creates the arrival
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                withAnimation(.easeIn(duration: 1.2)) {
-                    atomOpacity = 1.0
-                }
-            }
-            
-            // 2. First Nova bubble
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                showNova(NovaCopy.LightSpeed.entry)
-            }
-            
-            scheduleContinue(after: 5.0)
+        try? await Task.sleep(nanoseconds: 600_000_000)
+        guard !Task.isCancelled else { return }
+        
+        withAnimation(.easeInOut(duration: 2.0)) {
+            // High scale + fade for the rush feel
+            starScale = 80.0 
+            starOpacity = 0.0
         }
+        
+        // Fading atom in midway through (t=1.0) creates the arrival
+        try? await Task.sleep(nanoseconds: 400_000_000)
+        guard !Task.isCancelled else { return }
+        
+        withAnimation(.easeIn(duration: 1.2)) {
+            atomOpacity = 1.0
+        }
+        
+        // 2. First Nova bubble
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        guard !Task.isCancelled else { return }
+        
+        showNova(NovaCopy.LightSpeed.entry)
+        
+        await scheduleContinue(after: 2.5)
     }
     
     // MARK: - Actions
     
     private func showNova(_ text: String) {
-        if showNovaBubble {
-            // Fade out current bubble
-            withAnimation(.easeOut(duration: 0.2)) {
-                showNovaBubble = false
-            }
-            
-            // Wait, swap text, then fade back in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+        novaTask?.cancel()
+        novaTask = Task {
+            if showNovaBubble {
+                // Fade out current bubble
+                withAnimation(.easeOut(duration: 0.2)) {
+                    showNovaBubble = false
+                }
+                
+                // Wait, swap text, then fade back in
+                try? await Task.sleep(nanoseconds: 250_000_000)
+                guard !Task.isCancelled else { return }
+                
+                novaText = text
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    showNovaBubble = true
+                }
+                HapticEngine.shared.playNovaSpeak()
+            } else {
                 novaText = text
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                     showNovaBubble = true
                 }
                 HapticEngine.shared.playNovaSpeak()
             }
-        } else {
-            novaText = text
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                showNovaBubble = true
-            }
-            HapticEngine.shared.playNovaSpeak()
         }
     }
     
-    private func scheduleContinue(after delay: Double = 2.5) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            if self.phase < 7 { // Simple guard for lesson end
-                withAnimation {
-                    showContinue = true
-                }
+    private func scheduleContinue(after delay: Double = 2.5) async {
+        try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        guard !Task.isCancelled else { return }
+        
+        if self.phase < 7 { 
+            withAnimation {
+                showContinue = true
             }
+        }
+    }
+    
+    private func scheduleContinueAsync(after delay: Double = 2.5) {
+        sequenceTask = Task {
+            await scheduleContinue(after: delay)
         }
     }
     
@@ -293,7 +317,7 @@ struct LightSpeedView: View {
                 lightSpeed = 1.0
                 showSlider = false // Keep hidden until asked
             }
-            scheduleContinue(after: 4.0)
+            scheduleContinueAsync(after: 4.0)
             
         case 2:
             // Low c phase - user asked to interact
@@ -325,14 +349,14 @@ struct LightSpeedView: View {
                 atomOpacity = 0.0
             }
             showNova(NovaCopy.LightSpeed.starfield)
-            scheduleContinue(after: 6.0)
+            scheduleContinueAsync(after: 6.0)
             
         case 6:
             // Final closing + Supernova trigger
             withAnimation { starOpacity = 0.0 }
             supernovaTriggered = true
             showNova(NovaCopy.LightSpeed.closing)
-            scheduleContinue(after: 5.0)
+            scheduleContinueAsync(after: 5.0)
             
         default:
             onComplete()
@@ -345,19 +369,19 @@ struct LightSpeedView: View {
         if phase == 2 && value < 0.4 {
             phaseTriggered = true
             showNova(NovaCopy.LightSpeed.lowLight)
-            scheduleContinue(after: 3.5)
+            scheduleContinueAsync(after: 3.5)
         }
         
         if phase == 3 && value > 4.0 {
             phaseTriggered = true
             showNova(NovaCopy.LightSpeed.highLight)
-            scheduleContinue(after: 3.5)
+            scheduleContinueAsync(after: 3.5)
         }
         
         if phase == 4 && value >= 0.9 && value <= 1.1 {
             phaseTriggered = true
             showNova(NovaCopy.LightSpeed.rightLight)
-            scheduleContinue(after: 3.0)
+            scheduleContinueAsync(after: 3.0)
         }
     }
 }

@@ -23,6 +23,7 @@ struct HomeView: View {
     
     // Nova speech bubble
     @State private var showNovaIntro = false
+    @State private var isReturningUser = false
     
     // Cards
     @State private var cardsVisible = false
@@ -108,8 +109,7 @@ struct HomeView: View {
                                     }
                                 )
                             
-                            let hasLaunched = UserDefaults.standard.bool(forKey: "hasLaunched")
-                            Text(hasLaunched ? NovaCopy.Intro.welcome : NovaCopy.Home.novaIntro)
+                            Text(isReturningUser ? NovaCopy.Intro.welcome : NovaCopy.Home.novaIntro)
                                 .font(.system(size: 14, weight: .regular, design: .rounded))
                                 .foregroundColor(.frailPrimaryText)
                                 .lineSpacing(4)
@@ -187,6 +187,10 @@ struct HomeView: View {
                 nova.hide()
                 guard !hasAnimated else { return }
                 hasAnimated = true
+                
+                // Capture first-launch state BEFORE updating it
+                isReturningUser = UserDefaults.standard.bool(forKey: "hasLaunched")
+                
                 startCinematicEntry()
             }
         }
