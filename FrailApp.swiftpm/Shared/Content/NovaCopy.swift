@@ -124,8 +124,22 @@ struct NovaCopy {
     
     // MARK: - Witness — The Spectacle
     struct Witness {
-        static let entry = "You don't need to do anything here. Just watch. This is what the universe does with time and gravity when nothing stops it."
-        static let closing = "Collision is not just destruction. It is a redistribution. A rearrangement. A new beginning."
+        static let intro = "I want to show you something that happened 7,500 years ago, 6,500 light years from where you are sitting."
+        static let naming = "Two stars. They have been falling toward each other for longer than your planet has existed. I have been watching."
+        static let starA = "This one is older. Eleven billion years burning hydrogen. What remains is a white dwarf — one teaspoon of its material weighs five tonnes."
+        static let starB = "This one is younger. Still burning. Still bright. It does not know yet what is about to happen to it."
+        static let starBClose = "It will."
+        static let approach30 = "The white dwarf's gravity is reaching across space. It is pulling gas from its companion. A stream of hydrogen, stolen across 50 million kilometres."
+        static let approach60 = "The stolen gas is accumulating on the surface of the white dwarf. Layer by layer. For thousands of years. The companion star does not notice it is being consumed."
+        static let approach85 = "There is a threshold. 1.4 solar masses. The Chandrasekhar limit. The precise point at which electron degeneracy pressure can no longer hold."
+        static let inevitable = "It has been this precise, this inevitable, since the first atom fell from one star to the other. Physics did not negotiate."
+        static let flash = "In the span of a few seconds, this star released more energy than our Sun will produce in its entire ten-billion-year lifetime."
+        static let hubble = "You are looking at the Crab Nebula. A photograph taken by the Hubble Space Telescope. This is what remains of a star that exploded in 1054 AD. Visible in daylight for 23 days."
+        static let yangWeide = "On Earth, it is 1054 AD. A Chinese court astronomer named Yang Weide looks up and writes: 'A guest star appeared. After more than a year, it gradually became invisible.'"
+        static let lightDelay = "The light reaching Earth right now left this star 6,500 years ago. You are watching the past. The star no longer exists. It has not existed for 6,500 years."
+        static let expanding = "Inside that nebula are elements that did not exist before this star died. Carbon. Oxygen. Iron. The same elements we found in the lessons — forged in stars, released only in moments like this."
+        static let closing = "The calcium in your bones was produced in a supernova. Possibly one very much like this. You are not separate from what you just watched. You are a later chapter of it."
+        static let thesis = "The universe is precise enough to create beauty. And precise enough to end it. Both are the same precision. Both are why you are here."
     }
     
     // Compatibility for mapping
