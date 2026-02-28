@@ -31,6 +31,7 @@ struct GravityView: View {
     @State private var chapterLabel = ""
     @State private var entryDone = false
     @State private var phaseTriggered = false  // prevents re-triggering per phase
+    @State private var sequenceTask: Task<Void, Never>? = nil
     
     var body: some View {
         GeometryReader { geo in
@@ -160,35 +161,42 @@ struct GravityView: View {
             .onAppear {
                 guard !entryDone else { return }
                 entryDone = true
-                beginPhase0()
+                sequenceTask = Task {
+                    await beginPhase0()
+                }
+            }
+            .onDisappear {
+                sequenceTask?.cancel()
+                sequenceTask = nil
             }
         }
     }
     
     // MARK: - Phase logic
     
-    private func beginPhase0() {
+    private func beginPhase0() async {
         phase = 0
         gravityDisplay = 0.5  // faint uniform cloud, not clumped
         
         // Fade in cloud
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.easeIn(duration: 1.0)) {
-                cloudOpacity = 1.0
-                chapterLabel = "Gravity"
-            }
+        try? await Task.sleep(nanoseconds: 300_000_000)
+        guard !Task.isCancelled else { return }
+        
+        withAnimation(.easeIn(duration: 1.0)) {
+            cloudOpacity = 1.0
+            chapterLabel = "Gravity"
         }
         
         // Nova speaks
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            showNova(NovaCopy.Gravity.entry)
-        }
+        try? await Task.sleep(nanoseconds: 700_000_000)
+        guard !Task.isCancelled else { return }
+        showNova(NovaCopy.Gravity.entry)
         
         // Show continue
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                showContinue = true
-            }
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        guard !Task.isCancelled else { return }
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            showContinue = true
         }
     }
     
@@ -205,7 +213,10 @@ struct GravityView: View {
             // LOW GRAVITY — show slider, auto-set near zero
             showNova(NovaCopy.Gravity.lowGravityPrompt)
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            sequenceTask = Task {
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                guard !Task.isCancelled else { return }
+                
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                     showSlider = true
                 }
@@ -230,7 +241,10 @@ struct GravityView: View {
             showStarfield = true
             showNova(NovaCopy.Gravity.starfield)
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            sequenceTask = Task {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                guard !Task.isCancelled else { return }
+                
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                     showContinue = true
                 }
@@ -240,7 +254,10 @@ struct GravityView: View {
             // CLOSING
             showNova(NovaCopy.Gravity.closing)
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            sequenceTask = Task {
+                try? await Task.sleep(nanoseconds: 2_500_000_000)
+                guard !Task.isCancelled else { return }
+                
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                     showContinue = true
                 }
@@ -281,7 +298,10 @@ struct GravityView: View {
     // MARK: - Helpers
     
     private func showContinueAfterDelay() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+        sequenceTask = Task {
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            guard !Task.isCancelled else { return }
+            
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 showContinue = true
             }

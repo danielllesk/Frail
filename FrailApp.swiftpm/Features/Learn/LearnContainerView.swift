@@ -69,8 +69,19 @@ struct LearnContainerView: View {
                     
                     Spacer()
                     
-                    // Invisible balance for centering
-                    Color.clear.frame(width: 60, height: 1)
+                    // Skip button
+                    Button(action: skipLesson) {
+                        Text(currentLesson == .time ? "Close" : "Skip")
+                            .font(.system(size: 14, weight: .medium, design: .rounded))
+                            .foregroundColor(.frailGold)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(Color.frailGold.opacity(0.1))
+                            )
+                    }
+                    .buttonStyle(.plain)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 16)
@@ -127,6 +138,17 @@ struct LearnContainerView: View {
             return .frailGold
         } else {
             return .frailMutedText.opacity(0.3)
+        }
+    }
+    
+    private func skipLesson() {
+        if let nextLesson = Lesson(rawValue: currentLesson.rawValue + 1) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) {
+                currentLesson = nextLesson
+            }
+        } else {
+            // Last lesson -> home
+            onComplete()
         }
     }
     

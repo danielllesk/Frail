@@ -100,38 +100,41 @@ struct IntroView: View {
                         Spacer()
                         
                         // Nova + speech bubble, centered horizontally
-                        HStack(alignment: .top, spacing: 8) {
-                            // Nova slot — reports position via preference key
-                            Color.clear
-                                .frame(width: 48, height: 48)
-                                .background(
-                                    GeometryReader { slotGeo in
-                                        Color.clear.preference(
-                                            key: NovaSlotPreferenceKey.self,
-                                            value: CGPoint(
-                                                x: slotGeo.frame(in: .named("appRoot")).midX,
-                                                y: slotGeo.frame(in: .named("appRoot")).midY
+                        let hasLaunched = UserDefaults.standard.bool(forKey: "hasLaunched")
+                        if hasLaunched && showWelcome {
+                            HStack(alignment: .top, spacing: 8) {
+                                // Nova slot — reports position via preference key
+                                Color.clear
+                                    .frame(width: 48, height: 48)
+                                    .background(
+                                        GeometryReader { slotGeo in
+                                            Color.clear.preference(
+                                                key: NovaSlotPreferenceKey.self,
+                                                value: CGPoint(
+                                                    x: slotGeo.frame(in: .named("appRoot")).midX,
+                                                    y: slotGeo.frame(in: .named("appRoot")).midY
+                                                )
                                             )
-                                        )
-                                    }
-                                )
-                            
-                            Text(NovaCopy.Intro.welcome)
-                                .font(.system(size: 15, weight: .regular, design: .rounded))
-                                .foregroundColor(.frailPrimaryText)
-                                .lineSpacing(4)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 14)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color.frailMentorBg)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 16)
-                                                .stroke(Color.frailMentorBorder, lineWidth: 1)
-                                        )
-                                )
+                                        }
+                                    )
+                                
+                                Text(NovaCopy.Intro.welcome)
+                                    .font(.system(size: 15, weight: .regular, design: .rounded))
+                                    .foregroundColor(.frailPrimaryText)
+                                    .lineSpacing(4)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 14)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(Color.frailMentorBg)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 16)
+                                                    .stroke(Color.frailMentorBorder, lineWidth: 1)
+                                            )
+                                    )
+                            }
+                            .transition(.opacity.combined(with: .offset(y: 20)))
                         }
-                        .transition(.opacity.combined(with: .offset(y: 20)))
                         
                         if showContinue {
                             Button(action: onFinished) {

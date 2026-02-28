@@ -16,6 +16,7 @@ struct TimeDilationView: View {
     @State private var showSummary = false
     @State private var showNovaBubble = false
     @State private var novaMessage = ""
+    @State private var sequenceTask: Task<Void, Never>? = nil
     
     var body: some View {
         GeometryReader { _ in
@@ -146,8 +147,9 @@ struct TimeDilationView: View {
                     }
                 }
             }
-            .onAppear {
-                showNovaMessage(NovaCopy.TimeDilation.entry)
+            .onDisappear {
+                sequenceTask?.cancel()
+                sequenceTask = nil
             }
         }
     }
@@ -161,8 +163,13 @@ struct TimeDilationView: View {
         
         // Check for summary
         if newVelocity > 0.9 && !showSummary {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                showSummary = true
+            sequenceTask = Task {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                guard !Task.isCancelled else { return }
+                
+                withAnimation {
+                    showSummary = true
+                }
             }
         }
     }

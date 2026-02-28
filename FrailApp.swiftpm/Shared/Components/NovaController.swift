@@ -28,7 +28,7 @@ final class NovaController: NSObject, ObservableObject {
     @Published var visible: Bool = false
     
     // Orbit
-    private var displayLink: CADisplayLink?
+    nonisolated(unsafe) private var displayLink: CADisplayLink?
     private var orbitAngle: Double = 0
     private var orbitCX: CGFloat = 0
     private var orbitCY: CGFloat = 0
@@ -92,15 +92,22 @@ final class NovaController: NSObject, ObservableObject {
         // CADisplayLink fires on vsync, added to main RunLoop
         let link = CADisplayLink(target: self, selector: #selector(orbitTick))
         link.add(to: .main, forMode: .common)
-        displayLink = link
+        self.displayLink = link
     }
     
-    @objc private func orbitTick() {
+    deinit {
+        displayLink?.invalidate()
+    }
+    
+    @objc private func orbitTick(link: CADisplayLink) {
         guard isOrbiting else { return }
-        orbitAngle += orbitSpeed
-        if orbitAngle >= 360 { orbitAngle -= 360 }
-        x = orbitCX + orbitR * cos(orbitAngle * .pi / 180)
-        y = orbitCY + orbitR * sin(orbitAngle * .pi / 180)
+        
+        // Frame-rate independent increment
+        let dt = link.targetTimestamp - link.timestamp
+        orbitAngle += orbitSpeed * dt
+        
+        x = orbitCX + orbitR * cos(orbitAngle)
+        y = orbitCY + orbitR * sin(orbitAngle)
     }
     
     /// Update the orbit center (e.g. when geometry changes).
