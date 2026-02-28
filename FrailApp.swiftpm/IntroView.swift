@@ -99,13 +99,13 @@ struct IntroView: View {
                     VStack(spacing: 20) {
                         Spacer()
                         
-                        // Nova
+                        // Nova + speech bubble, centered horizontally
                         let hasLaunched = UserDefaults.standard.bool(forKey: "hasLaunched")
                         if hasLaunched && showWelcome {
-                            HStack(alignment: .top, spacing: 12) {
-                                // Nova Slot
+                            HStack(alignment: .top, spacing: 8) {
+                                // Nova slot — reports position via preference key
                                 Color.clear
-                                    .frame(width: 44, height: 44)
+                                    .frame(width: 48, height: 48)
                                     .background(
                                         GeometryReader { slotGeo in
                                             Color.clear.preference(
@@ -117,11 +117,6 @@ struct IntroView: View {
                                             )
                                         }
                                     )
-                                    .onPreferenceChange(NovaSlotPreferenceKey.self) { pos in
-                                        if pos != .zero {
-                                            nova.flyTo(x: pos.x, y: pos.y, size: 44, state: .speaking)
-                                        }
-                                    }
                                 
                                 Text(NovaCopy.Intro.welcome)
                                     .font(.system(size: 15, weight: .regular, design: .rounded))
@@ -140,6 +135,7 @@ struct IntroView: View {
                             }
                             .transition(.opacity.combined(with: .offset(y: 20)))
                         }
+                        
                         if showContinue {
                             Button(action: onFinished) {
                                 Text("Continue")
@@ -320,3 +316,4 @@ struct IntroView: View {
     IntroView(onFinished: {})
         .environmentObject(NovaController())
 }
+

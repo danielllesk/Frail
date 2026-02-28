@@ -12,6 +12,9 @@ import UIKit
 final class HapticEngine {
     static let shared = HapticEngine()
     
+    /// Notification fired when a haptic is requested, for visual debugging on simulator
+    static let hapticDebugFired = Notification.Name("hapticDebugFired")
+    
     private var engine: CHHapticEngine?
     
     private init() {
@@ -19,17 +22,28 @@ final class HapticEngine {
     }
     
     private func createEngine() {
+        #if targetEnvironment(simulator)
+        return // CoreHaptics doesn't run on simulator
+        #else
         do {
             engine = try CHHapticEngine()
             try engine?.start()
         } catch {
             print("Haptic engine creation error: \(error)")
         }
+        #endif
+    }
+    
+    private func notifyDebug(_ intensity: Float = 0.5) {
+        #if targetEnvironment(simulator)
+        NotificationCenter.default.post(name: HapticEngine.hapticDebugFired, object: intensity)
+        #endif
     }
     
     // MARK: - Named Patterns
     
     func playSliderMove(intensity: Float) {
+        notifyDebug(intensity)
         guard let engine = engine else { return }
         
         let event = CHHapticEvent(
@@ -52,6 +66,7 @@ final class HapticEngine {
     }
     
     func playTimeDilationPulse(velocity: Double) {
+        notifyDebug(0.4)
         guard let engine = engine else { return }
         
         let event = CHHapticEvent(
@@ -78,6 +93,7 @@ final class HapticEngine {
     }
     
     func playApplyConstants() {
+        notifyDebug(0.8)
         guard let engine = engine else { return }
         
         let sharp = CHHapticEvent(
@@ -108,6 +124,7 @@ final class HapticEngine {
     }
     
     func playVerdictStable() {
+        notifyDebug(0.7)
         guard let engine = engine else { return }
         
         var events: [CHHapticEvent] = []
@@ -135,6 +152,7 @@ final class HapticEngine {
     }
     
     func playVerdictCollapse() {
+        notifyDebug(1.0)
         guard let engine = engine else { return }
         
         let event = CHHapticEvent(
@@ -156,6 +174,7 @@ final class HapticEngine {
     }
     
     func playNovaSpeak() {
+        notifyDebug(0.3)
         guard let engine = engine else { return }
         
         let event = CHHapticEvent(
@@ -177,6 +196,7 @@ final class HapticEngine {
     }
     
     func playLessonComplete() {
+        notifyDebug(0.9)
         guard let engine = engine else { return }
         
         let soft1 = CHHapticEvent(
@@ -216,6 +236,7 @@ final class HapticEngine {
     }
     
     func playChallengeCorrect() {
+        notifyDebug(0.6)
         guard let engine = engine else { return }
         
         let tap1 = CHHapticEvent(
@@ -246,6 +267,7 @@ final class HapticEngine {
     }
     
     func playChallengeWrong() {
+        notifyDebug(0.6)
         guard let engine = engine else { return }
         
         let event = CHHapticEvent(

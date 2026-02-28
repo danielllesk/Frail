@@ -24,6 +24,10 @@ struct NovaView: View {
     @State private var flickerOpacity: Double = 1.0
     @State private var idleVariant: Int = Int.random(in: 0...1)
     
+    // Debug pulse for simulator
+    @State private var hapticPulseScale: CGFloat = 1.0
+    @State private var hapticPulseOpacity: Double = 0.0
+    
     var body: some View {
         ZStack {
             // Outer glow
@@ -67,6 +71,16 @@ struct NovaView: View {
                     .scaleEffect(breatheScale * 1.1)
                     .opacity(1.0 - breatheScale)
             }
+            
+            // Haptic Debug Pulse (Simulator only)
+            Circle()
+                .stroke(Color.white.opacity(0.8), lineWidth: 1.5)
+                .frame(width: size * 0.9, height: size * 0.9)
+                .scaleEffect(hapticPulseScale)
+                .opacity(hapticPulseOpacity)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: HapticEngine.hapticDebugFired)) { note in
+            triggerDebugPulse(intensity: note.object as? Float ?? 0.5)
         }
         .onAppear {
             startBreathing()
@@ -139,5 +153,15 @@ struct NovaView: View {
         }
         
         scheduleFlicker()
+    }
+    
+    private func triggerDebugPulse(intensity: Float) {
+        hapticPulseScale = 1.0
+        hapticPulseOpacity = Double(intensity)
+        
+        withAnimation(.easeOut(duration: 0.4)) {
+            hapticPulseScale = 1.6 + CGFloat(intensity) * 0.4
+            hapticPulseOpacity = 0.0
+        }
     }
 }
