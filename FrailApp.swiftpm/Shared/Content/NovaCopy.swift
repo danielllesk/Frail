@@ -72,7 +72,7 @@ struct NovaCopy {
         
         static let setup = "Meet Alice and Bob. They start here, on Earth, at the same moment — the same age, the same future. We are about to divide them. Bob will stay. Alice will go. What happens next is not science fiction."
         
-        static let velocityPrompt = "Move Alice. Slowly at first. Watch both clocks. What you are about to see is not an optical illusion, not a measurement error. It is the geometry of the universe behaving exactly as it must. This happens because space and time are not separate. They are one thing. Moving through one means moving less through the other."
+        static let velocityPrompt = "Move Alice. Slowly at first. Watch both clocks. What you are about to see is not an optical illusion, not a measurement error. It is the geometry of the universe behaving exactly as it must. This happens because space and time are not separate. They are one thing. Moving through one means moving less through the other. Everything moves through spacetime at exactly the speed of light. Always."
         
         static let highVelocity = "Now look at them. Alice is moving at 99% of the speed of light. To her, everything feels normal — she breathes, thinks, dreams at the same pace she always has. But look at Bob's clock. On Earth, years are screaming past. For every year Alice spends in the dark, seven pass for Bob. His hair is greying. His children are growing. She is falling through his future like a stone."
         

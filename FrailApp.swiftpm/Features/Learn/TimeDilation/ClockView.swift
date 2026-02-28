@@ -31,7 +31,8 @@ struct ClockView: View {
                 
                 // 2. Draw Hour Markers
                 for i in 0..<12 {
-                    let markerAngle = Double(i) * (.pi / 6)
+                    // Offset by -.pi/2 so i=0 is at the top (12 o'clock)
+                    let markerAngle = Double(i) * (.pi / 6) - (.pi / 2)
                     let start = CGPoint(
                         x: center.x + (radius - 12) * CGFloat(cos(markerAngle)),
                         y: center.y + (radius - 12) * CGFloat(sin(markerAngle))

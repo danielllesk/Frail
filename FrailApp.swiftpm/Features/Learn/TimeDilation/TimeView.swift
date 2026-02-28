@@ -32,9 +32,10 @@ struct TimeView: View {
     @State private var showNovaBubble = false
     @State private var phaseTriggered = false
     
+    @State private var entryDone = false
     @State private var sequenceTask: Task<Void, Never>? = nil
     @State private var novaTask: Task<Void, Never>? = nil
-    @State private var entryDone = false
+    @State private var lastUpdate: Date? = nil
     
     // Control for when the mission clock is "running"
     @State private var isMissionRunning = false
@@ -72,9 +73,13 @@ struct TimeView: View {
                 // ── Timeline Logic for Aging ──
                 TimelineView(.animation) { timeline in
                     Color.clear
-                        .onChange(of: timeline.date) { _ in
+                        .onChange(of: timeline.date) { newDate in
+                            let dt = newDate.timeIntervalSince(lastUpdate ?? newDate)
+                            lastUpdate = newDate
+                            
                             if isMissionRunning {
-                                updateAges()
+                                // Clamp dt to prevent explosion after backgrounding
+                                updateAges(dt: min(dt, 0.1))
                             }
                         }
                 }
@@ -193,17 +198,17 @@ struct TimeView: View {
     
     // MARK: - Aging Logic
     
-    private func updateAges() {
-        // Baseline speed: 1 year per real second (so bob goes fast)
-        let yearsPerSecond: Double = 0.8
-        let dt = 0.016 * yearsPerSecond
+    private func updateAges(dt: TimeInterval) {
+        // Baseline speed: 1 biological year per real second
+        let yearsPerSecond: Double = 1.0
+        let biologicalDt = dt * yearsPerSecond
         
         // Bob ages at 1x constant speed
-        bobAge += dt
+        bobAge += biologicalDt
         
         // Alice ages at a DILATED rate (always <= bob's rate)
-        // aliceAge increases by dt * (1/gamma)
-        aliceAge += dt * aliceTimeDilation
+        // aliceAge increases by biologicalDt * (1/gamma)
+        aliceAge += biologicalDt * aliceTimeDilation
     }
     
     // MARK: - Phase Logic
