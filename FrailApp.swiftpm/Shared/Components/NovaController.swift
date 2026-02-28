@@ -28,7 +28,7 @@ final class NovaController: NSObject, ObservableObject {
     @Published var visible: Bool = false
     
     // Orbit
-    private var displayLink: CADisplayLink?
+    private nonisolated(unsafe) var displayLink: CADisplayLink?
     private var orbitAngle: Double = 0
     private var orbitCX: CGFloat = 0
     private var orbitCY: CGFloat = 0
