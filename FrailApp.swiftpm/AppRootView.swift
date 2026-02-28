@@ -31,8 +31,7 @@ struct AppRootView: View {
                 // SINGLE PERSISTENT NOVA — always on top
                 // ═══════════════════════════════════════
                 if nova.visible {
-                    NovaView(state: nova.state)
-                        .id(nova.state)
+                    NovaView(state: nova.state, size: nova.size)
                         .frame(width: nova.size, height: nova.size)
                         .position(x: nova.x, y: nova.y)
                 }
