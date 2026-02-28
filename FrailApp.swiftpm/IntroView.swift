@@ -316,3 +316,4 @@ struct IntroView: View {
     IntroView(onFinished: {})
         .environmentObject(NovaController())
 }
+

@@ -38,27 +38,51 @@ struct LearnContainerView: View {
             Color.frailBackground
                 .ignoresSafeArea()
             
-            StarFieldView()
-                .ignoresSafeArea()
+            // Background stars are expensive; hide them if a lesson covers them
+            if currentLesson != .gravity {
+                StarFieldView()
+                    .ignoresSafeArea()
+            }
             
             VStack(spacing: 0) {
-                // ── Header: back button + progress dots ──
-                HStack {
-                    // Back button
-                    Button(action: goBack) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 14, weight: .semibold))
-                            Text(backLabel)
-                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                // ── Header: back button + centered progress dots ──
+                ZStack {
+                    HStack {
+                        // Back button
+                        Button(action: goBack) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text(backLabel)
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                            }
+                            .foregroundColor(.frailMutedText)
                         }
-                        .foregroundColor(.frailMutedText)
+                        .buttonStyle(.plain)
+                        
+                        Spacer()
+                        
+                        // Skip button
+                        Button(action: { 
+                            if let next = Lesson(rawValue: currentLesson.rawValue + 1) {
+                                withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) {
+                                    currentLesson = next
+                                }
+                            } else {
+                                onComplete()
+                            }
+                        }) {
+                            Text("Skip")
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .foregroundColor(.frailMutedText)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Capsule().stroke(Color.frailMutedText.opacity(0.3), lineWidth: 1))
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                     
-                    Spacer()
-                    
-                    // Progress dots
+                    // Progress dots centered in the entire header width
                     HStack(spacing: 8) {
                         ForEach(Lesson.allCases) { lesson in
                             Circle()
@@ -66,23 +90,9 @@ struct LearnContainerView: View {
                                 .frame(width: 8, height: 8)
                         }
                     }
-                    
-                    Spacer()
-                    
-                    // Skip button
-                    Button(action: skipLesson) {
-                        Text(currentLesson == .time ? "Close" : "Skip")
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
-                            .foregroundColor(.frailGold)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                Capsule()
-                                    .fill(Color.frailGold.opacity(0.1))
-                            )
-                    }
-                    .buttonStyle(.plain)
                 }
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
                 .padding(.horizontal, 24)
                 .padding(.top, 16)
                 
@@ -98,7 +108,7 @@ struct LearnContainerView: View {
                             onComplete: { completeLesson(.lightSpeed) }
                         )
                     case .time:
-                        TimeDilationView(
+                        TimeView(
                             onComplete: { completeLesson(.time) }
                         )
                     }
@@ -138,17 +148,6 @@ struct LearnContainerView: View {
             return .frailGold
         } else {
             return .frailMutedText.opacity(0.3)
-        }
-    }
-    
-    private func skipLesson() {
-        if let nextLesson = Lesson(rawValue: currentLesson.rawValue + 1) {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) {
-                currentLesson = nextLesson
-            }
-        } else {
-            // Last lesson -> home
-            onComplete()
         }
     }
     
