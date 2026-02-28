@@ -68,34 +68,34 @@ struct NovaCopy {
     
     // MARK: - Learn — Lesson 3: The Flow of Time
     struct Time {
-        static let entry = "Gravity gave us the stars. Light speed wove them into atoms. But a story needs more than actors and a stage—it needs a heartbeat. It needs time."
+        static let entry = "Gravity built the stars. Light speed built the atoms. But complexity — life, thought, everything that wonders — requires something neither of those provides. It requires duration. The universe needed to be old enough for any of this to matter. Time is not the background. It is the third constant."
         
-        static let setup = "Meet Alice and Bob. They are young, the universe at their feet. They start here, on Earth, at the same moment. But we are about to divide their futures. Bob will stay. Alice will go."
+        static let setup = "Meet Alice and Bob. They start here, on Earth, at the same moment — the same age, the same future. We are about to divide them. Bob will stay. Alice will go. What happens next is not science fiction."
         
-        static let velocityPrompt = "Time is not a rigid line; it is a fluid, a fabric that stretches when you move. Pull the slider to accelerate Alice. At first, the difference is a whisper—a heartbeat lost here and there."
+        static let velocityPrompt = "Move Alice. Slowly at first. Watch both clocks. What you are about to see is not an optical illusion, not a measurement error. It is the geometry of the universe behaving exactly as it must. This happens because space and time are not separate. They are one thing. Moving through one means moving less through the other."
         
-        static let highVelocity = "Now look at them. Alice is moving at 99% of the speed of light. To her, time feels normal. She breathes, thinks, and dreams at the same pace. But look at Bob's clock. On Earth, years are screaming past. For every year Alice spends in the dark, seven years pass for Bob. His hair is greying. His children are growing. She is falling through his future like a stone."
+        static let highVelocity = "Now look at them. Alice is moving at 99% of the speed of light. To her, everything feels normal — she breathes, thinks, dreams at the same pace she always has. But look at Bob's clock. On Earth, years are screaming past. For every year Alice spends in the dark, seven pass for Bob. His hair is greying. His children are growing. She is falling through his future like a stone."
         
-        static let reunionPrompt = "Eventually, every journey must end. Bring the velocity back to zero. Bring Alice home to see what she has paid for her speed."
+        static let reunionPrompt = "Every journey ends. Bring Alice home. Bring the velocity back to zero and see what her speed has cost her."
         
-        static let reunion = "The gap is permanent. Alice remains in her prime, while Bob has lived a lifetime. This is the fundamental cost of the universe's geometry. Space and time are one thing—Space-Time. If you take more of one, you have less of the other."
+        static let reunion = "The gap is permanent. This is not a trick. Alice did not experience time incorrectly — she experienced less of it. Here is why: everything moves through spacetime at exactly the speed of light. Always. If Alice uses that speed to move through space, she has less of it left to move through time. Speed through space steals time. The faster you run, the slower you age. The universe does not bend this rule. It is the rule."
         
-        static let closing = "Why does this matter? Because in your future, when you Build universes or reach for distant suns, you will not just be navigating distance. You will be navigating time. The stars are far, and our lives are short, but the weaver allows us a loophole. Remember this. Simplicity became complexity because time allowed it to breathe."
+        static let closing = "Why does this matter? Because the stars are far and our lives are short. Time dilation is not a curiosity — it is a feature of the universe that makes the cosmos navigable. The constants you have seen are not arbitrary. Gravity, light speed, time — each one precise. Each one load-bearing. Remove any one of them and there is no story. You are the proof that they held."
         
         static func slider(at multiplier: Double) -> String {
             switch multiplier {
             case ..<0.3:
-                return "A walk in the sun. The divergence is subtle, almost invisible."
-            case 0.3..<0.8:
-                return "The stretch becomes a tear. Bob is beginning to age faster."
-            case 0.8..<0.95:
-                return "Extreme dilation. Alice is now significantly younger than her twin."
+                return "Almost no effect. The divergence is too small to feel."
+            case 0.3..<0.7:
+                return "The clocks are separating. Bob is aging faster."
+            case 0.7..<0.94:
+                return "Significant dilation. Alice is accumulating younger moments."
             default:
-                return "The threshold. Time for Alice has practically stopped."
+                return "Near the limit. For every year Alice lives, seven pass for Bob."
             }
         }
         
-        static let summary = "Time provides the duration required for simplicity to become complexity."
+        static let summary = "Three constants. Gravity, light speed, time. Each precise. Each load-bearing. You have seen all three. Now build something with them."
     }
     
     // Compatibility for TimeDilationView
