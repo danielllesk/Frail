@@ -128,6 +128,10 @@ struct LightSpeedView: View {
             .onAppear {
                 showNovaMessage(NovaCopy.LightSpeed.entry)
             }
+            .onDisappear {
+                sequenceTask?.cancel()
+                sequenceTask = nil
+            }
         }
     }
     
@@ -139,8 +143,14 @@ struct LightSpeedView: View {
         HapticEngine.shared.playSliderMove(intensity: intensity)
         
         if (multiplier < 0.3 || multiplier > 2.0) && !showSummary {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                showSummary = true
+            sequenceTask?.cancel()
+            sequenceTask = Task {
+                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                guard !Task.isCancelled else { return }
+                
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    showSummary = true
+                }
             }
         }
     }
