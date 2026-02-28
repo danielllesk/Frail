@@ -158,9 +158,10 @@ struct GravityView: View {
                     Spacer().frame(height: 40)
                 }
             }
-            .task {
-                if !entryDone {
-                    entryDone = true
+            .onAppear {
+                guard !entryDone else { return }
+                entryDone = true
+                sequenceTask = Task {
                     await beginPhase0()
                 }
             }
@@ -175,21 +176,25 @@ struct GravityView: View {
     
     private func beginPhase0() async {
         phase = 0
-        gravityDisplay = 0.5
+        gravityDisplay = 0.5  // faint uniform cloud, not clumped
         
-        // t=0.3s — Fade in cloud
+        // Fade in cloud
         try? await Task.sleep(nanoseconds: 300_000_000)
+        guard !Task.isCancelled else { return }
+        
         withAnimation(.easeIn(duration: 1.0)) {
             cloudOpacity = 1.0
             chapterLabel = "Gravity"
         }
         
-        // t=1.0s — Nova speaks
+        // Nova speaks
         try? await Task.sleep(nanoseconds: 700_000_000)
+        guard !Task.isCancelled else { return }
         showNova(NovaCopy.Gravity.entry)
         
-        // t=2.5s — Show continue
+        // Show continue
         try? await Task.sleep(nanoseconds: 1_500_000_000)
+        guard !Task.isCancelled else { return }
         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
             showContinue = true
         }
@@ -201,7 +206,7 @@ struct GravityView: View {
         }
         
         phase += 1
-        phaseTriggered = false
+        phaseTriggered = false  // reset for next phase's slider check
         
         switch phase {
         case 1:
@@ -215,29 +220,20 @@ struct GravityView: View {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                     showSlider = true
                 }
-                // Programmatic change — don't trigger advance
-                phaseTriggered = true 
                 gravityDisplay = 0.1
-                try? await Task.sleep(nanoseconds: 100_000_000)
-                phaseTriggered = false
             }
             
         case 2:
             // HIGH GRAVITY — prompt to push it way up
             showNova(NovaCopy.Gravity.highGravityPrompt)
-            phaseTriggered = true
             gravityDisplay = 4.5
-            Task {
-                try? await Task.sleep(nanoseconds: 100_000_000)
-                phaseTriggered = false
-            }
             
         case 3:
             // RIGHT GRAVITY — find ~1x
             showNova(NovaCopy.Gravity.rightGravityPrompt)
             
         case 4:
-            // STARFIELD BLOOM
+            // STARFIELD BLOOM — keep user's gravity, switch to star mode
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 showSlider = false
             }

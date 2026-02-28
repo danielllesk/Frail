@@ -27,7 +27,6 @@ final class NovaController: NSObject, ObservableObject {
     @Published var state: NovaState = .idle
     @Published var visible: Bool = false
     
-    // Orbit
     private nonisolated(unsafe) var displayLink: CADisplayLink?
     private var orbitAngle: Double = 0
     private var orbitCX: CGFloat = 0
@@ -91,13 +90,16 @@ final class NovaController: NSObject, ObservableObject {
         x = cx + radius
         y = cy
         state = .idle
+        verticalOffset = 0
         visible = true
         
         // CADisplayLink fires on vsync, added to main RunLoop
         let link = CADisplayLink(target: self, selector: #selector(orbitTick))
         link.add(to: .main, forMode: .common)
-        displayLink = link
+        self.displayLink = link
     }
+    
+    private var verticalOffset: CGFloat = 0
     
     @objc private func orbitTick(link: CADisplayLink) {
         guard isOrbiting else { return }
