@@ -173,6 +173,14 @@ final class HapticEngine {
         }
     }
     
+    func playSuccess() {
+        playVerdictStable()
+    }
+    
+    func playWarning() {
+        playVerdictCollapse()
+    }
+    
     func playNovaSpeak() {
         notifyDebug(0.3)
         guard let engine = engine else { return }
