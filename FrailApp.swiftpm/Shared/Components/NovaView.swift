@@ -14,11 +14,12 @@ enum NovaState {
     case affirming
     case warning
     case critical
+    case happy
 }
 
 struct NovaView: View {
     let state: NovaState
-    let size: CGFloat = 48
+    let size: CGFloat
     
     @State private var breatheScale: CGFloat = 1.0
     @State private var flickerOpacity: Double = 1.0
@@ -90,7 +91,7 @@ struct NovaView: View {
     
     private var novaColor: Color {
         switch state {
-        case .idle, .speaking, .neutral:
+        case .idle, .speaking, .neutral, .happy:
             return .novaCenter
         case .affirming:
             return .frailGold
@@ -103,7 +104,7 @@ struct NovaView: View {
     
     private var novaEdgeColor: Color {
         switch state {
-        case .idle, .speaking, .neutral:
+        case .idle, .speaking, .neutral, .happy:
             return .novaEdge
         case .affirming:
             return .frailGold.opacity(0.5)

@@ -48,7 +48,29 @@ struct MysteryData {
             ],
             options: ["No magnetic field", "Speed of light too high", "No outer gas giant", "Gravity too weak"],
             correctIndex: 2,
-            successExplanation: "Jupiter intercepts debris that would otherwise devastate inner planets. Remove it — and the inner system never stabilises."
+            successExplanation: "Jupiter-like planets intercept debris that would otherwise devastate inner worlds. Remove them — and the inner system never stabilises."
+        ),
+        MysteryUniverse(
+            id: 3,
+            clues: [
+                "Planetary atmospheres were stripped away in violent bursts of radiation.",
+                "The star's surface is extremely turbulent, with massive loops of plasma.",
+                "Habitable zones were repeatedly scorched by high-energy particles."
+            ],
+            options: ["Star is a Red Dwarf", "Extreme Stellar Flares", "Speed of light too high", "Gravity too low"],
+            correctIndex: 0,
+            successExplanation: "Red dwarfs are fully convective stars that produce violent, frequent flares. These strip planetary atmospheres and flood habitable zones with radiation — even planets in the right temperature range cannot survive."
+        ),
+        MysteryUniverse(
+            id: 4,
+            clues: [
+                "Orbits are not circles; they are elongated, crossing each other.",
+                "Planets frequently come close to one another, causing gravitational chaos.",
+                "Eventually, most planets were either ejected into space or fell into the star."
+            ],
+            options: ["Too many planets", "High Orbital Eccentricity", "Gravity too weak", "Masses too low"],
+            correctIndex: 1,
+            successExplanation: "Stable systems require nearly circular, well-spaced orbits. High eccentricity leads to close encounters and eventual system collapse."
         )
     ]
 }
@@ -70,7 +92,7 @@ struct RapidFireData {
             lightSpeed: 1.0,
             mass: 1.0,
             isPossible: false,
-            explanation: "Gravity too weak. Atmospheres escape. Oceans evaporate. Life has no foundation."
+            explanation: "Gravity too weak. Atmospheres escape. Oceans evaporate."
         ),
         RapidFireRound(
             id: 1,
@@ -78,7 +100,7 @@ struct RapidFireData {
             lightSpeed: 0.5,
             mass: 2.0,
             isPossible: false,
-            explanation: "Light speed at half value destabilises atomic chemistry. The building blocks don't hold."
+            explanation: "Light speed at half value raises the fine-structure constant, destabilising electron orbitals. Atoms cannot form stable bonds. The mass of the planet is irrelevant — matter itself fails first."
         ),
         RapidFireRound(
             id: 2,
@@ -86,7 +108,31 @@ struct RapidFireData {
             lightSpeed: 1.0,
             mass: 1.5,
             isPossible: true,
-            explanation: "Slightly stronger gravity. Denser planets. Thicker atmospheres. Harder — but not impossible."
+            explanation: "Slightly stronger gravity. Denser planets. Possible foundation for life."
+        ),
+        RapidFireRound(
+            id: 3,
+            gravity: 5.0,
+            lightSpeed: 1.0,
+            mass: 0.8,
+            isPossible: false,
+            explanation: "Extreme gravity would crush even the simplest structures."
+        ),
+        RapidFireRound(
+            id: 4,
+            gravity: 1.0,
+            lightSpeed: 1.5,
+            mass: 5.0,
+            isPossible: false,
+            explanation: "A planet of 5 Earth masses retains a thick gas envelope during formation. No solid surface. No ocean. No foundation for life. The light speed deviation compounds this — atomic bonds are more energetic and less stable."
+        ),
+        RapidFireRound(
+            id: 5,
+            gravity: 0.8,
+            lightSpeed: 1.2,
+            mass: 1.0,
+            isPossible: true,
+            explanation: "A lighter touch and faster light still permits stable complexity."
         )
     ]
 }
