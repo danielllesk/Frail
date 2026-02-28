@@ -15,7 +15,7 @@ enum Verdict: String {
     
     var color: Color {
         switch self {
-        case .stable: return .green // Emerald placeholder
+        case .stable: return .frailEmerald
         case .marginal: return .frailGold
         case .unstable: return .frailAmber
         case .collapse: return .frailCrimson

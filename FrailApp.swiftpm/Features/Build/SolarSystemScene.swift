@@ -76,7 +76,7 @@ struct SolarSystemScene: UIViewRepresentable {
         scene.rootNode.addChildNode(titleNode)
         
         // 5. Setup Planets
-        for i in 0..<3 {
+        for i in planets.indices {
             let container = SCNNode()
             container.name = "orbit_container_\(i)"
             scene.rootNode.addChildNode(container)

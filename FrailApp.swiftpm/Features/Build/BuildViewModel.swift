@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SceneKit
 
 @MainActor
 final class BuildViewModel: ObservableObject {
@@ -27,7 +26,7 @@ final class BuildViewModel: ObservableObject {
     }
     
     // MARK: - Planet Properties
-    @Published var planets: [Planet] = (0..<3).map { i in
+    @Published var planets: [Planet] = (0..<PhysicsConstants.Planets.count).map { i in
         Planet(id: i, mass: 1.0, orbitalRadius: 1.0)
     }
     
@@ -113,7 +112,8 @@ final class BuildViewModel: ObservableObject {
         }
         
         // Delay score update to match visual arrival
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        Task {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
             self.updateScore()
         }
     }
