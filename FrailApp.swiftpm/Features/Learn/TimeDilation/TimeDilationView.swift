@@ -147,6 +147,9 @@ struct TimeDilationView: View {
                     }
                 }
             }
+            .onAppear {
+                showNovaMessage(NovaCopy.TimeDilation.entry)
+            }
             .onDisappear {
                 sequenceTask?.cancel()
                 sequenceTask = nil
