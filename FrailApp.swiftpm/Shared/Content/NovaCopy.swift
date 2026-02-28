@@ -68,20 +68,30 @@ struct NovaCopy {
     
     // MARK: - Learn — Lesson 3: The Flow of Time
     struct Time {
-        static let entry = "Gravity and Light are the actors. But for a story to happen, you need a stage. And the stage is time."
+        static let entry = "Gravity gave us the stars. Light speed wove them into atoms. But a story needs more than actors and a stage—it needs a heartbeat. It needs time."
+        
+        static let setup = "Meet Alice and Bob. They are young, the universe at their feet. They start here, on Earth, at the same moment. But we are about to divide their futures. Bob will stay. Alice will go."
+        
+        static let velocityPrompt = "Time is not a rigid line; it is a fluid, a fabric that stretches when you move. Pull the slider to accelerate Alice. At first, the difference is a whisper—a heartbeat lost here and there."
+        
+        static let highVelocity = "Now look at them. Alice is moving at 99% of the speed of light. To her, time feels normal. She breathes, thinks, and dreams at the same pace. But look at Bob's clock. On Earth, years are screaming past. For every year Alice spends in the dark, seven years pass for Bob. His hair is greying. His children are growing. She is falling through his future like a stone."
+        
+        static let reunionPrompt = "Eventually, every journey must end. Bring the velocity back to zero. Bring Alice home to see what she has paid for her speed."
+        
+        static let reunion = "The gap is permanent. Alice remains in her prime, while Bob has lived a lifetime. This is the fundamental cost of the universe's geometry. Space and time are one thing—Space-Time. If you take more of one, you have less of the other."
+        
+        static let closing = "Why does this matter? Because in your future, when you Build universes or reach for distant suns, you will not just be navigating distance. You will be navigating time. The stars are far, and our lives are short, but the weaver allows us a loophole. Remember this. Simplicity became complexity because time allowed it to breathe."
         
         static func slider(at multiplier: Double) -> String {
             switch multiplier {
-            case ..<0.2:
-                return "Time flows too fast. Stars consume themselves before planets can even cool. Symmetry without story."
-            case 0.2..<0.8:
-                return "Fast, but not impossible. Simple life might emerge — only to be extinguished before it learns to see."
-            case 0.8..<1.4:
-                return "Billions of years. A stage large enough for evolution to play its hand. The weaver's perfect rhythm."
-            case 1.4..<1.9:
-                return "Slow. The universe persists, but stars cool and fade before life can find its warmth."
+            case ..<0.3:
+                return "A walk in the sun. The divergence is subtle, almost invisible."
+            case 0.3..<0.8:
+                return "The stretch becomes a tear. Bob is beginning to age faster."
+            case 0.8..<0.95:
+                return "Extreme dilation. Alice is now significantly younger than her twin."
             default:
-                return "Time flows too slow. The heat death arrives before the first cell can even divide. A universe in stasis."
+                return "The threshold. Time for Alice has practically stopped."
             }
         }
         
