@@ -17,6 +17,7 @@ struct LightSpeedView: View {
     @State private var novaMessage = ""
     @State private var redshiftTint: Double = 0.0
     @State private var blueshiftTint: Double = 0.0
+    @State private var sequenceTask: Task<Void, Never>? = nil
     
     var body: some View {
         GeometryReader { _ in
