@@ -38,27 +38,32 @@ struct LearnContainerView: View {
             Color.frailBackground
                 .ignoresSafeArea()
             
-            StarFieldView()
-                .ignoresSafeArea()
+            // Background stars are expensive; hide them if a lesson covers them
+            if currentLesson != .gravity {
+                StarFieldView()
+                    .ignoresSafeArea()
+            }
             
             VStack(spacing: 0) {
-                // ── Header: back button + progress dots ──
-                HStack {
-                    // Back button
-                    Button(action: goBack) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 14, weight: .semibold))
-                            Text(backLabel)
-                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                // ── Header: back button + centered progress dots ──
+                ZStack {
+                    HStack {
+                        // Back button
+                        Button(action: goBack) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text(backLabel)
+                                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                            }
+                            .foregroundColor(.frailMutedText)
                         }
-                        .foregroundColor(.frailMutedText)
+                        .buttonStyle(.plain)
+                        
+                        Spacer()
                     }
-                    .buttonStyle(.plain)
                     
-                    Spacer()
-                    
-                    // Progress dots
+                    // Progress dots centered in the entire header width
                     HStack(spacing: 8) {
                         ForEach(Lesson.allCases) { lesson in
                             Circle()
@@ -66,12 +71,9 @@ struct LearnContainerView: View {
                                 .frame(width: 8, height: 8)
                         }
                     }
-                    
-                    Spacer()
-                    
-                    // Invisible balance for centering
-                    Color.clear.frame(width: 60, height: 1)
                 }
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
                 .padding(.horizontal, 24)
                 .padding(.top, 16)
                 

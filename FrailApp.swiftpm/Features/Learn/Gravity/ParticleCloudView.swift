@@ -15,9 +15,26 @@ struct ParticleCloudView: View {
     /// When true, particles become bright star points (final phase).
     let showStars: Bool
     
-    // Seed data — fixed at init, never mutated.
+    // Seed data — fixed once, never mutated.
     // Each particle has a deterministic home position and cluster assignment.
-    private let seeds: [ParticleSeed]
+    private static let seeds: [ParticleSeed] = {
+        // Generate deterministic seeds once
+        var rng = SplitMix64(seed: 42)  // fixed seed = deterministic
+        var s: [ParticleSeed] = []
+        let count = 200
+        for i in 0..<count {
+            s.append(ParticleSeed(
+                homeX: rng.nextDouble(in: 0.08...0.92),
+                homeY: rng.nextDouble(in: 0.08...0.92),
+                baseSize: rng.nextDouble(in: 1.5...3.0),
+                baseBrightness: rng.nextDouble(in: 0.3...0.7),
+                clusterIndex: i % ParticleCloudView.clusterCenters.count,
+                jitterSeedX: rng.nextDouble(in: -1.0...1.0),
+                jitterSeedY: rng.nextDouble(in: -1.0...1.0)
+            ))
+        }
+        return s
+    }()
     
     struct ParticleSeed {
         let homeX: Double       // uniform cloud position (0–1)
@@ -39,30 +56,13 @@ struct ParticleCloudView: View {
     init(gravityValue: Double, showStars: Bool) {
         self.gravityValue = gravityValue
         self.showStars = showStars
-        
-        // Generate deterministic seeds once
-        var rng = SplitMix64(seed: 42)  // fixed seed = deterministic
-        var s: [ParticleSeed] = []
-        let count = 200
-        for i in 0..<count {
-            s.append(ParticleSeed(
-                homeX: rng.nextDouble(in: 0.08...0.92),
-                homeY: rng.nextDouble(in: 0.08...0.92),
-                baseSize: rng.nextDouble(in: 1.5...3.0),
-                baseBrightness: rng.nextDouble(in: 0.3...0.7),
-                clusterIndex: i % Self.clusterCenters.count,
-                jitterSeedX: rng.nextDouble(in: -1.0...1.0),
-                jitterSeedY: rng.nextDouble(in: -1.0...1.0)
-            ))
-        }
-        self.seeds = s
     }
     
     var body: some View {
         Canvas { context, size in
             let g = gravityValue
             
-            for seed in seeds {
+            for seed in Self.seeds {
                 // ── Compute position from gravity (pure equation) ──
                 let (px, py, brightness, particleSize) = computeParticle(seed: seed, gravity: g)
                 

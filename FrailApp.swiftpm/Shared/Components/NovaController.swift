@@ -36,6 +36,10 @@ final class NovaController: NSObject, ObservableObject {
     private var orbitSpeed: Double = 0.35
     private(set) var isOrbiting: Bool = false
     
+    deinit {
+        displayLink?.invalidate()
+    }
+    
     /// Fly Nova to a target position with spring animation.
     func flyTo(
         x: CGFloat,

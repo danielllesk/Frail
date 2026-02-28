@@ -157,38 +157,36 @@ struct GravityView: View {
                     Spacer().frame(height: 40)
                 }
             }
-            .onAppear {
-                guard !entryDone else { return }
-                entryDone = true
-                beginPhase0()
+            .task {
+                if !entryDone {
+                    entryDone = true
+                    await beginPhase0()
+                }
             }
         }
     }
     
     // MARK: - Phase logic
     
-    private func beginPhase0() {
+    private func beginPhase0() async {
         phase = 0
-        gravityDisplay = 0.5  // faint uniform cloud, not clumped
+        gravityDisplay = 0.5
         
-        // Fade in cloud
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.easeIn(duration: 1.0)) {
-                cloudOpacity = 1.0
-                chapterLabel = "Gravity"
-            }
+        // t=0.3s — Fade in cloud
+        try? await Task.sleep(nanoseconds: 300_000_000)
+        withAnimation(.easeIn(duration: 1.0)) {
+            cloudOpacity = 1.0
+            chapterLabel = "Gravity"
         }
         
-        // Nova speaks
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            showNova(NovaCopy.Gravity.entry)
-        }
+        // t=1.0s — Nova speaks
+        try? await Task.sleep(nanoseconds: 700_000_000)
+        showNova(NovaCopy.Gravity.entry)
         
-        // Show continue
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                showContinue = true
-            }
+        // t=2.5s — Show continue
+        try? await Task.sleep(nanoseconds: 1_500_000_000)
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            showContinue = true
         }
     }
     
@@ -198,31 +196,41 @@ struct GravityView: View {
         }
         
         phase += 1
-        phaseTriggered = false  // reset for next phase's slider check
+        phaseTriggered = false
         
         switch phase {
         case 1:
             // LOW GRAVITY — show slider, auto-set near zero
             showNova(NovaCopy.Gravity.lowGravityPrompt)
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            Task {
+                try? await Task.sleep(nanoseconds: 500_000_000)
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                     showSlider = true
                 }
+                // Programmatic change — don't trigger advance
+                phaseTriggered = true 
                 gravityDisplay = 0.1
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                phaseTriggered = false
             }
             
         case 2:
             // HIGH GRAVITY — prompt to push it way up
             showNova(NovaCopy.Gravity.highGravityPrompt)
+            phaseTriggered = true
             gravityDisplay = 4.5
+            Task {
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                phaseTriggered = false
+            }
             
         case 3:
             // RIGHT GRAVITY — find ~1x
             showNova(NovaCopy.Gravity.rightGravityPrompt)
             
         case 4:
-            // STARFIELD BLOOM — keep user's gravity, switch to star mode
+            // STARFIELD BLOOM
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 showSlider = false
             }
@@ -230,7 +238,8 @@ struct GravityView: View {
             showStarfield = true
             showNova(NovaCopy.Gravity.starfield)
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            Task {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                     showContinue = true
                 }
@@ -240,7 +249,8 @@ struct GravityView: View {
             // CLOSING
             showNova(NovaCopy.Gravity.closing)
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            Task {
+                try? await Task.sleep(nanoseconds: 2_500_000_000)
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                     showContinue = true
                 }
