@@ -108,7 +108,8 @@ struct HomeView: View {
                                     }
                                 )
                             
-                            Text(NovaCopy.Home.novaIntro)
+                            let hasLaunched = UserDefaults.standard.bool(forKey: "hasLaunched")
+                            Text(hasLaunched ? NovaCopy.Intro.welcome : NovaCopy.Home.novaIntro)
                                 .font(.system(size: 14, weight: .regular, design: .rounded))
                                 .foregroundColor(.frailPrimaryText)
                                 .lineSpacing(4)
@@ -212,6 +213,7 @@ struct HomeView: View {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 showNovaIntro = true
             }
+            UserDefaults.standard.set(true, forKey: "hasLaunched")
             HapticEngine.shared.playNovaSpeak()
         }
         

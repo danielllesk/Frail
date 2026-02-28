@@ -116,20 +116,23 @@ struct IntroView: View {
                                     }
                                 )
                             
-                            Text(NovaCopy.Intro.welcome)
-                                .font(.system(size: 15, weight: .regular, design: .rounded))
-                                .foregroundColor(.frailPrimaryText)
-                                .lineSpacing(4)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 14)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color.frailMentorBg)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 16)
-                                                .stroke(Color.frailMentorBorder, lineWidth: 1)
-                                        )
-                                )
+                            let hasLaunched = UserDefaults.standard.bool(forKey: "hasLaunched")
+                            if hasLaunched {
+                                Text(NovaCopy.Intro.welcome)
+                                    .font(.system(size: 15, weight: .regular, design: .rounded))
+                                    .foregroundColor(.frailPrimaryText)
+                                    .lineSpacing(4)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 14)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .fill(Color.frailMentorBg)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 16)
+                                                    .stroke(Color.frailMentorBorder, lineWidth: 1)
+                                            )
+                                    )
+                            }
                         }
                         .transition(.opacity.combined(with: .offset(y: 20)))
                         
