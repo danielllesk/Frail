@@ -74,7 +74,7 @@ struct ChallengeView: View {
             if vm.showResultOverlay {
                 ChallengeResultOverlay(
                     isCorrect: vm.isCorrect,
-                    explanation: vm.currentMystery.successExplanation,
+                    explanation: vm.isCorrect ? vm.currentMystery.explanation : "Not quite this time. Review the data above and try the next mystery!",
                     buttonLabel: vm.currentMysteryIndex < MysteryData.mysteries.count - 1 ? "Next Mystery" : "Return to Start",
                     onContinue: { vm.nextMystery() }
                 )
@@ -102,13 +102,17 @@ struct ChallengeView: View {
             if pos != .zero {
                 let size: CGFloat = 80
                 let state: NovaState
-                if vm.showResultOverlay || vm.showRapidResult || vm.showFinalScore {
-                    state = vm.isCorrect || vm.rapidCorrect ? .happy : .idle
+                
+                if vm.showResultOverlay {
+                    state = vm.isCorrect ? .happy : .idle
+                } else if vm.showRapidResult || vm.showFinalScore {
+                    state = vm.rapidCorrect ? .happy : .idle
                 } else if vm.deadUniversePhase == .intro && vm.selectedMode == .deadUniverse {
                     state = .speaking
                 } else {
                     state = .idle
                 }
+                
                 nova.flyTo(x: pos.x, y: pos.y, size: size, state: state)
             }
         }
@@ -160,7 +164,7 @@ struct ChallengeView: View {
                     }
                 )
             
-            TypewriterText(text: "You have come across a dead universe.\nHeres what I know...", speed: 0.04)
+            TypewriterText(text: "You have come across a dead universe.\nHere’s what I know...", speed: 0.04)
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
@@ -592,7 +596,7 @@ struct FinalScoreOverlay: View {
                             .font(.system(size: 84, weight: .black, design: .monospaced))
                             .foregroundColor(.white)
                     }
-                    Text("UNIVERSES DIAGNOSED")
+                    Text("ROUNDS CORRECT")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(.frailMutedText)
                 }

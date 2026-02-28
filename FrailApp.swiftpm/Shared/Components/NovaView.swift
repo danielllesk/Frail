@@ -87,6 +87,12 @@ struct NovaView: View {
             startBreathing()
             startFlicker()
         }
+        .onChange(of: state) { _ in
+            startBreathing()
+            if state == .idle || state == .neutral {
+                startFlicker()
+            }
+        }
     }
     
     private var novaColor: Color {
@@ -127,7 +133,11 @@ struct NovaView: View {
         }
     }
     
+    @State private var flickerTask: Task<Void, Never>?
+    
     private func startFlicker() {
+        flickerTask?.cancel()
+        
         guard state == .idle || state == .neutral else {
             flickerOpacity = 1.0
             return
@@ -136,24 +146,24 @@ struct NovaView: View {
         let baseDelay: Double = idleVariant == 0 ? 1.8 : 2.6
         let flickerAmount: Double = 0.15
         
-        func scheduleFlicker() {
-            let jitter = Double.random(in: -0.4...0.4)
-            DispatchQueue.main.asyncAfter(deadline: .now() + baseDelay + jitter) {
+        flickerTask = Task {
+            while !Task.isCancelled {
+                let jitter = Double.random(in: -0.4...0.4)
+                try? await Task.sleep(nanoseconds: UInt64((baseDelay + jitter) * 1_000_000_000))
+                if Task.isCancelled { break }
+                
                 withAnimation(.easeInOut(duration: 0.25)) {
                     flickerOpacity = 1.0 - flickerAmount
                 }
                 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                    withAnimation(.easeInOut(duration: 0.35)) {
-                        flickerOpacity = 1.0
-                    }
-                    
-                    scheduleFlicker()
+                try? await Task.sleep(nanoseconds: UInt64(0.25 * 1_000_000_000))
+                if Task.isCancelled { break }
+                
+                withAnimation(.easeInOut(duration: 0.35)) {
+                    flickerOpacity = 1.0
                 }
             }
         }
-        
-        scheduleFlicker()
     }
     
     private func triggerDebugPulse(intensity: Float) {

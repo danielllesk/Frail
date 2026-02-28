@@ -12,7 +12,7 @@ struct MysteryUniverse: Identifiable {
     let clues: [String]
     let options: [String]
     let correctIndex: Int
-    let successExplanation: String
+    let explanation: String
 }
 
 struct MysteryData {
@@ -26,7 +26,7 @@ struct MysteryData {
             ],
             options: ["Gravity too strong", "Speed of light too low", "Planet mass too high", "Star burned too cool"],
             correctIndex: 0,
-            successExplanation: "Strong gravity accelerates stellar evolution. Stars exhaust their fuel fast. No time for complexity."
+            explanation: "Strong gravity accelerates stellar evolution. Stars exhaust their fuel fast. No time for complexity."
         ),
         MysteryUniverse(
             id: 1,
@@ -37,7 +37,7 @@ struct MysteryData {
             ],
             options: ["Gravity too weak", "Speed of light too low", "Planet mass too low", "Expansion too fast"],
             correctIndex: 1,
-            successExplanation: "A slower light changes the fine-structure constant. Atoms lose stability. Chemistry loses range."
+            explanation: "A slower light changes the fine-structure constant. Atoms lose stability. Chemistry loses range."
         ),
         MysteryUniverse(
             id: 2,
@@ -48,7 +48,7 @@ struct MysteryData {
             ],
             options: ["No magnetic field", "Speed of light too high", "No outer gas giant", "Gravity too weak"],
             correctIndex: 2,
-            successExplanation: "Jupiter-like planets intercept debris that would otherwise devastate inner worlds. Remove them — and the inner system never stabilises."
+            explanation: "Jupiter-like planets intercept debris that would otherwise devastate inner worlds. Remove them — and the inner system never stabilises."
         ),
         MysteryUniverse(
             id: 3,
@@ -59,7 +59,7 @@ struct MysteryData {
             ],
             options: ["Star is a Red Dwarf", "Extreme Stellar Flares", "Speed of light too high", "Gravity too low"],
             correctIndex: 0,
-            successExplanation: "Red dwarfs are fully convective stars that produce violent, frequent flares. These strip planetary atmospheres and flood habitable zones with radiation — even planets in the right temperature range cannot survive."
+            explanation: "Red dwarfs are fully convective stars that produce violent, frequent flares. These strip planetary atmospheres and flood habitable zones with radiation — even planets in the right temperature range cannot survive."
         ),
         MysteryUniverse(
             id: 4,
@@ -70,7 +70,7 @@ struct MysteryData {
             ],
             options: ["Too many planets", "High Orbital Eccentricity", "Gravity too weak", "Masses too low"],
             correctIndex: 1,
-            successExplanation: "Stable systems require nearly circular, well-spaced orbits. High eccentricity leads to close encounters and eventual system collapse."
+            explanation: "Stable systems require nearly circular, well-spaced orbits. High eccentricity leads to close encounters and eventual system collapse."
         )
     ]
 }
