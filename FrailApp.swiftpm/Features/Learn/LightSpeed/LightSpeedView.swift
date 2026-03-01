@@ -40,14 +40,12 @@ struct LightSpeedView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // 1. Solid background - hides the container's StarFieldView completely
-                Color.frailBackground.ignoresSafeArea()
+                // Background is handled by AppRootView globally
                 
-                // 2. Star field/Star view (Phases 0, 5, 6)
+                // 2. Star view (Phases 0, 5, 6)
                 // Layered below everything else
                 ZStack {
-                    // Ambient stars
-                    StarFieldView().opacity(min(1.0, starOpacity))
+                    // Ambient stars are now handled globally
                     
                     // The "Zoom" star - locked in center for stable scaling
                     ZStack {

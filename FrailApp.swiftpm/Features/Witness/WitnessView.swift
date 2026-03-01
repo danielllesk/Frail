@@ -10,12 +10,7 @@ struct WitnessView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // 1. Deep Space Background
-                Color.frailBackground
-                    .ignoresSafeArea()
-                
-                StarFieldView()
-                    .ignoresSafeArea()
+                // Background is handled by AppRootView globally
                 
                 // 2. SwiftUI Nebula Layer (Always present, framed better)
                 NebulaLayer(opacity: vm.nebulaOpacity, scale: vm.nebulaScale, rotation: nebulaRotation)

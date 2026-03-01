@@ -11,10 +11,20 @@ import SwiftUI
 struct AppRootView: View {
     @State private var hasSeenIntro = false
     @StateObject private var nova = NovaController()
+    private let starController = StarFieldController.shared
     
     var body: some View {
         GeometryReader { _ in
             ZStack {
+                // ═══════════════════════════════════════
+                // GLOBAL PERSISTENT BACKGROUND
+                // ═══════════════════════════════════════
+                Color.frailBackground
+                    .ignoresSafeArea()
+                
+                StarFieldView(controller: starController)
+                    .ignoresSafeArea()
+                
                 if hasSeenIntro {
                     RootView()
                         .transition(.opacity.combined(with: .move(edge: .top)))
@@ -40,6 +50,7 @@ struct AppRootView: View {
         }
         .ignoresSafeArea()
         .environmentObject(nova)
+        .environmentObject(starController)
     }
 }
 

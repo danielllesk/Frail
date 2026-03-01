@@ -20,11 +20,7 @@ struct RootView: View {
     
     var body: some View {
         ZStack {
-            Color.frailBackground
-                .ignoresSafeArea()
-            
-            StarFieldView()
-                .ignoresSafeArea()
+            // Background is handled by AppRootView globally
             
             switch currentScreen {
             case .home:
