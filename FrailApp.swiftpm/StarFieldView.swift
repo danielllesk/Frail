@@ -1,6 +1,4 @@
 import SwiftUI
-@preconcurrency import CoreMotion
-import Combine
 
 struct StarFieldView: View {
     @ObservedObject var controller: StarFieldController = .shared
@@ -9,13 +7,14 @@ struct StarFieldView: View {
         if controller.isVisible {
             TimelineView(.animation) { timeline in
                 Canvas { context, size in
+                    let time = timeline.date.timeIntervalSinceReferenceDate
+                    
                     // Static stars
                     for star in controller.stars {
                         let offsetX = controller.roll * star.parallax * 20
                         let offsetY = controller.pitch * star.parallax * 20
                         
                         // Subtle twinkle based on time
-                        let time = timeline.date.timeIntervalSinceReferenceDate
                         let twinkle = 0.8 + 0.2 * sin(time * star.twinkleSpeed + star.twinkleOffset)
                         
                         let rect = CGRect(
@@ -86,8 +85,7 @@ struct StarFieldView: View {
                         )
                     }
                     
-                    // Cleanup expired shooting stars
-                    controller.cleanupShootingStars(now: now)
+                    // Cleanup is now handled by the controller during spawning
                 }
             }
             .drawingGroup() // Metal-backed performance

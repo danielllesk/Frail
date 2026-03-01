@@ -11,7 +11,7 @@ import SwiftUI
 struct AppRootView: View {
     @State private var hasSeenIntro = false
     @StateObject private var nova = NovaController()
-    @StateObject private var starController = StarFieldController.shared
+    private let starController = StarFieldController.shared
     
     var body: some View {
         GeometryReader { _ in

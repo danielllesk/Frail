@@ -2,7 +2,7 @@ import SwiftUI
 import CoreMotion
 
 @MainActor
-class StarFieldController: ObservableObject {
+final class StarFieldController: ObservableObject {
     static let shared = StarFieldController()
     
     @Published var stars: [Star] = []
@@ -16,7 +16,7 @@ class StarFieldController: ObservableObject {
     private let motionManager = CMMotionManager()
     private var shootingStarTimer: Timer?
     
-    init() {
+    private init() {
         generateStars(count: 500)
         startMotionUpdates()
         startShootingStars()
@@ -47,25 +47,27 @@ class StarFieldController: ObservableObject {
     private func startShootingStars() {
         shootingStarTimer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
+                guard let self = self, self.isVisible else { return }
                 if Double.random(in: 0...1) < 0.7 {
-                    self?.spawnShootingStar()
+                    self.spawnShootingStar()
                 }
             }
         }
     }
     
     private func spawnShootingStar() {
+        let now = Date().timeIntervalSinceReferenceDate
+        shootingStars.removeAll { now - $0.startTime > $0.duration + 0.5 }
+
         let star = ShootingStar(
             startX: Double.random(in: 0.1...0.9),
             startY: Double.random(in: 0.05...0.4),
             endX: Double.random(in: 0.2...1.0),
             endY: Double.random(in: 0.15...0.5),
             duration: Double.random(in: 0.6...1.5),
-            startTime: Date().timeIntervalSinceReferenceDate
+            startTime: now
         )
         shootingStars.append(star)
-        
-        // Cleanup handled during rendering in View
     }
     
     func cleanupShootingStars(now: TimeInterval) {
