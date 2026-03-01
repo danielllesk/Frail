@@ -139,7 +139,7 @@ struct HomeView: View {
                     VStack(spacing: 14) {
                         FrailCard(
                             title: "Learn",
-                            subtitle: "Three lessons on time, gravity, and the speed of light.",
+                            subtitle: "Explore the fundamental physical constants of our universe.",
                             index: 1,
                             action: onLearnTapped
                         )
@@ -149,7 +149,7 @@ struct HomeView: View {
                         
                         FrailCard(
                             title: "Build",
-                            subtitle: "Assemble a solar system. See if it holds.",
+                            subtitle: "Construct orbital systems and test their stability.",
                             index: 2,
                             action: onBuildTapped
                         )
@@ -159,7 +159,7 @@ struct HomeView: View {
                         
                         FrailCard(
                             title: "Challenge",
-                            subtitle: "Diagnose dead universes. Judge what could live.",
+                            subtitle: "Solve celestial puzzles to restore dying star systems.",
                             index: 3,
                             action: onChallengeTapped
                         )
@@ -169,7 +169,7 @@ struct HomeView: View {
                         
                         FrailCard(
                             title: "Witness",
-                            subtitle: "Two galaxies collide. No interaction required.",
+                            subtitle: "Witness the dramatic end of a binary star system.",
                             index: 4,
                             action: onWitnessTapped
                         )
