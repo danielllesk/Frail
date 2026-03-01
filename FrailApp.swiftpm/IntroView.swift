@@ -37,13 +37,7 @@ struct IntroView: View {
             let earthCY = h * 0.48
             
             ZStack {
-                // ── Black background ──
-                Color.frailBackground
-                    .ignoresSafeArea()
-                
-                // ── Stars ──
-                StarFieldView()
-                    .ignoresSafeArea()
+                // Background is handled by AppRootView globally
                 
                 // ── TITLE ──
                 titleLetters

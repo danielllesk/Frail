@@ -33,16 +33,11 @@ struct LearnContainerView: View {
     @State private var currentLesson: Lesson = .gravity
     @State private var completedLessons: Set<Lesson> = []
     
+    @EnvironmentObject var starController: StarFieldController
+    
     var body: some View {
         ZStack {
-            Color.frailBackground
-                .ignoresSafeArea()
-            
-            // Background stars are expensive; hide them if a lesson covers them
-            if currentLesson != .gravity {
-                StarFieldView()
-                    .ignoresSafeArea()
-            }
+            // Background is handled by AppRootView globally
             
             VStack(spacing: 0) {
                 // ── Header: back button + centered progress dots ──
@@ -117,6 +112,17 @@ struct LearnContainerView: View {
             }
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.75), value: currentLesson)
+        .onAppear {
+            starController.isVisible = (currentLesson != .gravity)
+        }
+        .onChange(of: currentLesson) { newValue in
+            withAnimation {
+                starController.isVisible = (newValue != .gravity)
+            }
+        }
+        .onDisappear {
+            starController.isVisible = true
+        }
     }
     
     // MARK: - Navigation
