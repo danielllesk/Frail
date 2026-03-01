@@ -4,6 +4,7 @@ import SceneKit
 struct BinaryStarScene: UIViewRepresentable {
     let progress: Double
     let isSupernova: Bool
+    let highlightedStar: String?
     
     func makeUIView(context: Context) -> SCNView {
         let scnView = SCNView()
@@ -24,17 +25,18 @@ struct BinaryStarScene: UIViewRepresentable {
         cameraNode.camera = SCNCamera()
         cameraNode.camera?.zFar = 5000
         cameraNode.camera?.zNear = 0.1
+        cameraNode.camera?.fieldOfView = 40 // Narrower FOV for more cinematic feel
         cameraAnchor.addChildNode(cameraNode)
         
         // Initial Camera Position
-        cameraNode.position = SCNVector3(x: 0, y: 5, z: 25)
+        cameraNode.position = SCNVector3(x: 0, y: 5, z: 30)
         cameraNode.eulerAngles.x = -.pi/12
         
         let mainLight = SCNNode()
         mainLight.light = SCNLight()
         mainLight.light?.type = .omni
-        mainLight.light?.intensity = 1000
-        mainLight.position = SCNVector3(0, 10, 20)
+        mainLight.light?.intensity = 1200
+        mainLight.position = SCNVector3(0, 15, 25)
         scene.rootNode.addChildNode(mainLight)
         
         let ambientLight = SCNNode()
@@ -48,7 +50,7 @@ struct BinaryStarScene: UIViewRepresentable {
         starA.name = "starA"
         scene.rootNode.addChildNode(starA)
         
-        let starB = createStar(radius: 2.0, texture: "star_surface", color: UIColor(red: 1.0, green: 0.35, blue: 0.1, alpha: 1.0))
+        let starB = createStar(radius: 2.2, texture: "star_surface", color: UIColor(red: 1.0, green: 0.45, blue: 0.1, alpha: 1.0))
         starB.name = "starB"
         scene.rootNode.addChildNode(starB)
         
@@ -85,7 +87,7 @@ struct BinaryStarScene: UIViewRepresentable {
             
             // ANIMATED PULLBACK
             SCNTransaction.begin()
-            SCNTransaction.animationDuration = 4.0
+            SCNTransaction.animationDuration = 2.0
             cameraNode.position = SCNVector3(x: 0, y: 0, z: 120)
             cameraNode.eulerAngles.x = 0
             
@@ -98,20 +100,37 @@ struct BinaryStarScene: UIViewRepresentable {
             starA.isHidden = false
             starB.isHidden = false
             
+            // NON-LINEAR PHYSICS (Gravitational Acceleration)
+            // Use a power curve (t^2) to simulate acceleration as they get closer
+            let decay = pow(t, 2.5) 
+            let startDist: Float = 14.0
+            starA.position.x = -startDist * (1.0 - decay)
+            starB.position.x = startDist * (1.0 - decay)
+            
             SCNTransaction.begin()
-            SCNTransaction.animationDuration = 0.5
-            cameraNode.position = SCNVector3(x: 0, y: 5, z: 25)
-            cameraNode.eulerAngles.x = -.pi/12
+            SCNTransaction.animationDuration = 0.6
+            
+            if let focus = highlightedStar {
+                // Focus Mode - Zoom in on the specific star
+                let targetX = (focus == "starA") ? starA.position.x : starB.position.x
+                cameraNode.position = SCNVector3(x: targetX, y: 1, z: 12)
+                cameraNode.eulerAngles.x = -.pi/20
+                
+                selectionGlow.isHidden = false
+                selectionGlow.position = (focus == "starA") ? starA.position : starB.position
+                selectionGlow.scale = (focus == "starA") ? SCNVector3(0.4, 0.4, 0.4) : SCNVector3(1.1, 1.1, 1.1)
+            } else {
+                // Default Cinematic View
+                cameraNode.position = SCNVector3(x: 0, y: 5, z: 30)
+                cameraNode.eulerAngles.x = -.pi/12
+                selectionGlow.isHidden = true
+            }
             SCNTransaction.commit()
             
-            let startDist: Float = 12.0
-            starA.position.x = -startDist * (1.0 - t)
-            starB.position.x = startDist * (1.0 - t)
-            
-            let distortion = 1.0 + (t > 0.4 ? (t - 0.4) * 0.5 : 0)
+            let distortion = 1.0 + (t > 0.4 ? (t - 0.4) * 0.6 : 0)
             starB.scale = SCNVector3(distortion, 1.0, 1.0)
             
-            if t > 0.3 {
+            if t > 0.2 {
                 updateTidalStream(in: scene, from: starB, to: starA, progress: t)
             } else {
                 scene.rootNode.childNode(withName: "streamNode", recursively: false)?.removeAllParticleSystems()
@@ -178,7 +197,8 @@ struct BinaryStarScene: UIViewRepresentable {
     private func updateTidalStream(in scene: SCNScene, from donor: SCNNode, to acceptor: SCNNode, progress: Float) {
         guard let container = scene.rootNode.childNode(withName: "streamNode", recursively: false) else { return }
         
-        if progress > 0.95 || isSupernova {
+        // LIMIT: Only fire when close enough and definitely stop before supernova trigger (0.95)
+        if progress < 0.4 || progress >= 0.94 || isSupernova {
             container.removeAllParticleSystems()
             container.childNodes.forEach { $0.removeAllParticleSystems() }
             return
@@ -196,28 +216,38 @@ struct BinaryStarScene: UIViewRepresentable {
         
         if emitterNode?.particleSystems?.isEmpty ?? true {
             let stream = SCNParticleSystem()
-            stream.emitterShape = SCNPlane(width: 0.05, height: 0.05)
-            stream.particleColor = UIColor(red: 1.0, green: 0.8, blue: 0.5, alpha: 0.9)
-            stream.particleSize = 0.1
-            stream.birthRate = 1200
-            stream.particleLifeSpan = 0.5
-            stream.particleVelocity = 14.0
-            stream.particleVelocityVariation = 0
-            stream.spreadingAngle = 0
+            stream.emitterShape = SCNPlane(width: 0.15, height: 0.15) 
+            stream.particleColor = UIColor(red: 1.0, green: 0.8, blue: 0.5, alpha: 0.8)
+            stream.particleSize = 0.07 
+            stream.birthRate = 3000 
+            stream.particleLifeSpan = 0.4
+            stream.particleVelocity = 18.0
+            stream.particleVelocityVariation = 6.0 
+            stream.spreadingAngle = 20 
             stream.blendMode = .additive
             emitterNode?.addParticleSystem(stream)
         }
         
-        container.position = donor.position
+        // Position emitter on the SURFACE of donor star looking at acceptor
+        let rawDist = simd_distance(donor.simdPosition, acceptor.simdPosition)
+        let donorRadius: Float = 2.2
+        let acceptorRadius: Float = 0.6
+        
+        // Direction vector from donor to acceptor
+        let dir = simd_normalize(acceptor.simdPosition - donor.simdPosition)
+        
+        // Place container + emitter at donor's surface
+        container.simdPosition = donor.simdPosition + (dir * donorRadius)
         container.look(at: acceptor.position)
         
         if let system = emitterNode?.particleSystems?.first {
-            system.birthRate = CGFloat(600 + progress * 1000)
-            let rawDist = simd_distance(donor.simdPosition, acceptor.simdPosition)
-            let surfaceDist = max(0.1, rawDist - 0.6) 
-            let velocity: CGFloat = 14.0
-            system.particleVelocity = velocity
-            system.particleLifeSpan = CGFloat(surfaceDist) / velocity
+            system.birthRate = CGFloat(1500 + progress * 2500)
+            
+            // LifeSpan = Distance between surfaces / Velocity
+            let surfaceDist = max(0.01, rawDist - donorRadius - acceptorRadius)
+            let vel: CGFloat = 18.0
+            system.particleVelocity = vel
+            system.particleLifeSpan = CGFloat(surfaceDist) / vel
         }
     }
 }

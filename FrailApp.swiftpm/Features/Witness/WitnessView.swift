@@ -4,6 +4,8 @@ struct WitnessView: View {
     let onBack: () -> Void
     @StateObject private var vm = WitnessViewModel()
     @EnvironmentObject var nova: NovaController
+    @State private var shakeOffset: CGFloat = 0
+    @State private var nebulaRotation: Double = 0
     
     var body: some View {
         GeometryReader { geo in
@@ -15,21 +17,20 @@ struct WitnessView: View {
                 StarFieldView()
                     .ignoresSafeArea()
                 
-                // 2. SwiftUI Nebula Layer
-                if vm.showNebula {
-                    NebulaLayer(opacity: vm.nebulaOpacity, scale: vm.nebulaScale)
-                }
+                // 2. SwiftUI Nebula Layer (Always present, framed better)
+                NebulaLayer(opacity: vm.nebulaOpacity, scale: vm.nebulaScale, rotation: nebulaRotation)
                 
                 // 3. SceneKit Scene
                 BinaryStarScene(
                     progress: vm.scrubProgress,
-                    isSupernova: vm.isSupernovaTriggered
+                    isSupernova: vm.isSupernovaTriggered,
+                    highlightedStar: vm.highlightedStar
                 )
                 .ignoresSafeArea()
                 
                 // 4. Cinematic Supernova Flash
                 if vm.showFlash {
-                    WitnessSupernovaFlash {
+                    WitnessSupernovaFlash(shake: $shakeOffset) {
                         withAnimation { vm.showFlash = false }
                     }
                 }
@@ -37,9 +38,16 @@ struct WitnessView: View {
                 // 5. UI Overlay
                 InteractionOverlay(vm: vm, onBack: onBack)
             }
+            .offset(x: shakeOffset)
             .coordinateSpace(name: "appRoot")
             .onAppear {
                 vm.start()
+                // Slow ambient rotation — Delay by 8s to avoid "image-on-canvas" feel during reveal
+                DispatchQueue.main.asyncAfter(deadline: .now() + 8.0) {
+                    withAnimation(.linear(duration: 120).repeatForever(autoreverses: false)) {
+                        nebulaRotation = 360
+                    }
+                }
             }
         }
     }
@@ -211,21 +219,58 @@ struct InteractionOverlay: View {
     }
 }
 
-// MARK: - Sub-components
-
 struct NebulaLayer: View {
     let opacity: Double
     let scale: CGFloat
+    let rotation: Double
     
     var body: some View {
-        Image("crab_nebula")
-            .resizable()
-            .aspectRatio(contentMode: .fill)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .blendMode(.screen)
-            .opacity(opacity)
-            .scaleEffect(scale)
-            .ignoresSafeArea()
+        GeometryReader { geo in
+            ZStack {
+                // 1. Ambient Glow — Soft expanded light (using 4K asset)
+                Image("crabnebulaBETTER")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: geo.size.width * 2.2, height: geo.size.height * 2.2)
+                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                    .rotationEffect(.degrees(rotation * 0.3))
+                    .blur(radius: 60)
+                    .opacity(opacity * 0.5)
+                    .blendMode(.screen)
+                    .mask(radialMask(size: geo.size, scale: 2.2))
+                
+                // 2. Core Structure — Sharp 4K 1:1 asset at optimized scale
+                Image("crabnebulaBETTER")
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: geo.size.width * scale, height: geo.size.height * scale)
+                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
+                    .rotationEffect(.degrees(rotation))
+                    .contrast(1.2)
+                    .saturation(1.5)
+                    .opacity(opacity)
+                    .blendMode(.screen)
+                    .mask(radialMask(size: geo.size, scale: scale))
+            }
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+    }
+    
+    // Extreme radial mask with early 20% fade to dissolve rectangular edges
+    private func radialMask(size: CGSize, scale: CGFloat) -> some View {
+        RadialGradient(
+            gradient: Gradient(stops: [
+                .init(color: .white, location: 0.0),   
+                .init(color: .white, location: 0.2),  // Early fade (20%) for 4K safety
+                .init(color: .black.opacity(0.3), location: 0.5), 
+                .init(color: .black, location: 0.9)    // Gone long before asset edge
+            ]),
+            center: .center,
+            startRadius: 0,
+            endRadius: min(size.width, size.height) * scale * 0.5
+        )
+        .frame(width: size.width * scale, height: size.height * scale)
     }
 }
 
@@ -234,6 +279,7 @@ struct NebulaLayer: View {
 @MainActor
 struct WitnessSupernovaFlash: View {
     let onComplete: @MainActor @Sendable () -> Void
+    @Binding var shake: CGFloat
     @State private var startTime: Date? = nil
     @State private var flashOpacity: Double = 1.0
     @State private var flashScale: CGFloat = 0.1
@@ -249,36 +295,37 @@ struct WitnessSupernovaFlash: View {
         let layer: Int 
     }
 
-    init(onComplete: @escaping @MainActor @Sendable () -> Void) {
+    init(shake: Binding<CGFloat>, onComplete: @escaping @MainActor @Sendable () -> Void) {
+        self._shake = shake
         self.onComplete = onComplete
         var p: [WitnessParticle] = []
-        // Inner white core
-        for _ in 0..<80 {
+        // Inner white core - Grandiose update
+        for _ in 0..<200 { 
             p.append(WitnessParticle(
                 angle: Double.random(in: 0...(.pi * 2)),
-                speed: Double.random(in: 300...600),
-                size: CGFloat.random(in: 4...10),
+                speed: Double.random(in: 500...1000), 
+                size: CGFloat.random(in: 4...15),
                 color: .white,
                 layer: 0
             ))
         }
-        // Mid orange sparks
-        for _ in 0..<120 {
+        // Mid orange sparks - More theatric
+        for _ in 0..<250 {
             p.append(WitnessParticle(
                 angle: Double.random(in: 0...(.pi * 2)),
-                speed: Double.random(in: 150...350),
-                size: CGFloat.random(in: 3...7),
-                color: [Color.orange, Color(red: 1, green: 0.6, blue: 0.2)].randomElement()!,
+                speed: Double.random(in: 250...600),
+                size: CGFloat.random(in: 3...12),
+                color: [Color.orange, Color.yellow, Color.red].randomElement()!,
                 layer: 1
             ))
         }
         // Outer blue wisps
-        for _ in 0..<60 {
+        for _ in 0..<150 {
             p.append(WitnessParticle(
                 angle: Double.random(in: 0...(.pi * 2)),
-                speed: Double.random(in: 80...200),
-                size: CGFloat.random(in: 2...5),
-                color: [Color.frailAccent, Color(red: 0.6, green: 0.8, blue: 1.0)].randomElement()!,
+                speed: Double.random(in: 150...400),
+                size: CGFloat.random(in: 2...10),
+                color: [Color.blue, Color.cyan, Color.white].randomElement()!,
                 layer: 1
             ))
         }
@@ -333,8 +380,18 @@ struct WitnessSupernovaFlash: View {
             startTime = Date()
             HapticEngine.shared.playSupernova()
 
+            // CAMERA SHAKE OOMPH
+            for i in 0..<10 {
+                withAnimation(Animation.interactiveSpring().delay(Double(i) * 0.05)) {
+                    shake = CGFloat.random(in: -15...15)
+                }
+            }
+            withAnimation(Animation.interactiveSpring().delay(0.5)) {
+                shake = 0
+            }
+
             withAnimation(.easeOut(duration: 0.4)) {
-                flashScale = 8.0
+                flashScale = 12.0
                 flashOpacity = 1.0
             }
             withAnimation(.easeIn(duration: 1.2).delay(0.4)) {

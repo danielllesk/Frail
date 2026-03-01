@@ -7,6 +7,7 @@ class WitnessViewModel: ObservableObject {
     @Published var scrubProgress: Double = 0.0
     @Published var novaText: String = ""
     @Published var showNovaBubble: Bool = true
+    @Published var highlightedStar: String? = nil
     
     // Supernova/Timer states
     @Published var isSupernovaTriggered = false
@@ -25,23 +26,24 @@ class WitnessViewModel: ObservableObject {
         let text: String
         let progress: Double
         let isSlider: Bool
+        let focus: String?
     }
     
     private var steps: [StepData] {
         [
-            StepData(text: NovaCopy.Witness.intro, progress: 0.0, isSlider: false), // 0
-            StepData(text: NovaCopy.Witness.naming, progress: 0.0, isSlider: false), // 1
-            StepData(text: NovaCopy.Witness.starA, progress: 0.0, isSlider: false), // 2
-            StepData(text: NovaCopy.Witness.starB, progress: 0.0, isSlider: false), // 3
-            StepData(text: NovaCopy.Witness.starBClose, progress: 0.0, isSlider: false), // 4
-            StepData(text: NovaCopy.Witness.approach30, progress: 0.3, isSlider: true), // 5 (Slider Start)
-            StepData(text: NovaCopy.Witness.flash, progress: 1.0, isSlider: false), // 6 (Explosion Phase)
-            StepData(text: NovaCopy.Witness.hubble, progress: 1.0, isSlider: false), // 7
-            StepData(text: NovaCopy.Witness.yangWeide, progress: 1.0, isSlider: false), // 8
-            StepData(text: NovaCopy.Witness.lightDelay, progress: 1.0, isSlider: false), // 9
-            StepData(text: NovaCopy.Witness.expanding, progress: 1.0, isSlider: false), // 10
-            StepData(text: NovaCopy.Witness.closing, progress: 1.0, isSlider: false), // 11
-            StepData(text: NovaCopy.Witness.thesis, progress: 1.0, isSlider: false) // 12
+            StepData(text: NovaCopy.Witness.intro, progress: 0.0, isSlider: false, focus: nil), // 0
+            StepData(text: NovaCopy.Witness.naming, progress: 0.0, isSlider: false, focus: nil), // 1
+            StepData(text: NovaCopy.Witness.starA, progress: 0.0, isSlider: false, focus: "starA"), // 2
+            StepData(text: NovaCopy.Witness.starB, progress: 0.0, isSlider: false, focus: "starB"), // 3
+            StepData(text: NovaCopy.Witness.starBClose, progress: 0.0, isSlider: false, focus: "starB"), // 4
+            StepData(text: NovaCopy.Witness.approach30, progress: 0.3, isSlider: true, focus: nil), // 5 (Slider Start)
+            StepData(text: NovaCopy.Witness.flash, progress: 1.0, isSlider: false, focus: nil), // 6 (Explosion Phase)
+            StepData(text: NovaCopy.Witness.hubble, progress: 1.0, isSlider: false, focus: nil), // 7
+            StepData(text: NovaCopy.Witness.yangWeide, progress: 1.0, isSlider: false, focus: nil), // 8
+            StepData(text: NovaCopy.Witness.lightDelay, progress: 1.0, isSlider: false, focus: nil), // 9
+            StepData(text: NovaCopy.Witness.expanding, progress: 1.0, isSlider: false, focus: nil), // 10
+            StepData(text: NovaCopy.Witness.closing, progress: 1.0, isSlider: false, focus: nil), // 11
+            StepData(text: NovaCopy.Witness.thesis, progress: 1.0, isSlider: false, focus: nil) // 12
         ]
     }
     
@@ -97,6 +99,7 @@ class WitnessViewModel: ObservableObject {
     private func syncStep() {
         let data = steps[currentStep]
         novaText = data.text
+        highlightedStar = data.focus
         
         if !data.isSlider {
             withAnimation(.spring()) {
@@ -123,15 +126,21 @@ class WitnessViewModel: ObservableObject {
         isSupernovaTriggered = true
         withAnimation { showFlash = true }
         
+        // Initial state for materialization
+        self.nebulaOpacity = 0
+        self.nebulaScale = 0.8
+        
         Task {
             try? await Task.sleep(nanoseconds: 3_500_000_000)
             if Task.isCancelled { return }
             
             withAnimation(.easeOut) { self.showFlash = false }
             self.showNebula = true
-            withAnimation(.easeIn(duration: 4.0)) {
-                self.nebulaOpacity = 0.85
-                self.nebulaScale = 1.2
+            
+            // Slow dramatic fade — 6 seconds feels cinematic (Targeting 1.6x for 4K quality)
+            withAnimation(.easeIn(duration: 6.0)) {
+                self.nebulaOpacity = 0.9
+                self.nebulaScale = 1.6
             }
         }
     }
@@ -163,7 +172,7 @@ class WitnessViewModel: ObservableObject {
             novaText = NovaCopy.Witness.approach30
         }
         
-        if value >= 1.0 {
+        if value >= 0.95 {
             next()
         }
     }
