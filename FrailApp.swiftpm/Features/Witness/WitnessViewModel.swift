@@ -1,145 +1,158 @@
-//
-//  WitnessViewModel.swift
-//  Frail
-//
-//  State for the galaxy collision witness experience.
-//
-
 import SwiftUI
+import Combine
 
 @MainActor
-final class WitnessViewModel: ObservableObject {
+class WitnessViewModel: ObservableObject {
     @Published var currentStep: Int = 0
-    @Published var scrubProgress: Double = 0.0 // Slider value (0.0 to 1.0)
-    @Published var showNovaBubble: Bool = false
+    @Published var scrubProgress: Double = 0.0
     @Published var novaText: String = ""
+    @Published var showNovaBubble: Bool = true
     
     // Supernova/Timer states
-    @Published var isSupernovaTriggered: Bool = false
-    @Published var supernovaDay: Int = 1
-    @Published var isExpanding: Bool = false
+    @Published var isSupernovaTriggered = false
+    @Published var isExpanding = false
+    @Published var supernovaDay = 0
     @Published var showContinue: Bool = false
     
-    // Camera / Focus states
-    @Published var highlightedStar: String? = nil // "starA", "starB", or nil
+    // Cinematic State
+    @Published var showFlash = false
+    @Published var showNebula = false
+    @Published var nebulaOpacity: Double = 0.0
+    @Published var nebulaScale: CGFloat = 0.9
     
-    private var cinematicTask: Task<Void, Never>?
-    
-    init() {
-        self.novaText = NovaCopy.Witness.intro
-        syncStep()
-    }
-    
-    deinit {
-        cinematicTask?.cancel()
-    }
-    
-    // MARK: - Step Mapping
-    
+    // Step Mapping
     struct StepData {
         let text: String
         let progress: Double
         let isSlider: Bool
-        let focus: String?
     }
     
     private var steps: [StepData] {
         [
-            StepData(text: NovaCopy.Witness.intro, progress: 0.0, isSlider: false, focus: nil), // 0
-            StepData(text: NovaCopy.Witness.naming, progress: 0.05, isSlider: false, focus: nil), // 1
-            StepData(text: NovaCopy.Witness.starA, progress: 0.1, isSlider: false, focus: "starA"), // 2
-            StepData(text: NovaCopy.Witness.starB, progress: 0.2, isSlider: false, focus: "starB"), // 3
-            StepData(text: NovaCopy.Witness.starBClose, progress: 0.3, isSlider: false, focus: "starB"), // 4
-            StepData(text: NovaCopy.Witness.approach30, progress: 0.3, isSlider: true, focus: nil), // 5 (Slider)
-            StepData(text: NovaCopy.Witness.flash, progress: 1.0, isSlider: false, focus: nil), // 6 (Supernova Flash)
-            StepData(text: NovaCopy.Witness.hubble, progress: 1.0, isSlider: false, focus: nil), // 7
-            StepData(text: NovaCopy.Witness.yangWeide, progress: 1.0, isSlider: false, focus: nil), // 8
-            StepData(text: NovaCopy.Witness.lightDelay, progress: 1.0, isSlider: false, focus: nil), // 9
-            StepData(text: NovaCopy.Witness.expanding, progress: 1.0, isSlider: false, focus: nil), // 10
-            StepData(text: NovaCopy.Witness.closing, progress: 1.0, isSlider: false, focus: nil), // 11
-            StepData(text: NovaCopy.Witness.thesis, progress: 1.0, isSlider: false, focus: nil) // 12
+            StepData(text: NovaCopy.Witness.intro, progress: 0.0, isSlider: false), // 0
+            StepData(text: NovaCopy.Witness.naming, progress: 0.0, isSlider: false), // 1
+            StepData(text: NovaCopy.Witness.starA, progress: 0.0, isSlider: false), // 2
+            StepData(text: NovaCopy.Witness.starB, progress: 0.0, isSlider: false), // 3
+            StepData(text: NovaCopy.Witness.starBClose, progress: 0.0, isSlider: false), // 4
+            StepData(text: NovaCopy.Witness.approach30, progress: 0.3, isSlider: true), // 5 (Slider Start)
+            StepData(text: NovaCopy.Witness.flash, progress: 1.0, isSlider: false), // 6 (Explosion Phase)
+            StepData(text: NovaCopy.Witness.hubble, progress: 1.0, isSlider: false), // 7
+            StepData(text: NovaCopy.Witness.yangWeide, progress: 1.0, isSlider: false), // 8
+            StepData(text: NovaCopy.Witness.lightDelay, progress: 1.0, isSlider: false), // 9
+            StepData(text: NovaCopy.Witness.expanding, progress: 1.0, isSlider: false), // 10
+            StepData(text: NovaCopy.Witness.closing, progress: 1.0, isSlider: false), // 11
+            StepData(text: NovaCopy.Witness.thesis, progress: 1.0, isSlider: false) // 12
         ]
     }
     
-    var isSliderPhase: Bool { currentStep == 5 }
-    var hasBack: Bool { currentStep > 0 && !isSupernovaTriggered }
-    var hasNext: Bool { !isSliderPhase && currentStep < steps.count - 1 && !isSupernovaTriggered }
+    init() {
+        syncStep()
+    }
+    
+    func start() {
+        currentStep = 0
+        scrubProgress = 0.0
+        isSupernovaTriggered = false
+        isExpanding = false
+        supernovaDay = 0
+        showContinue = false
+        showFlash = false
+        showNebula = false
+        nebulaOpacity = 0.0
+        nebulaScale = 0.9
+        syncStep()
+    }
     
     // MARK: - Navigation
     
-    func start() {
-        // No-op if already synced in init, but ensures state is reset
-        currentStep = 0
-        syncStep()
-        showNovaBubble = true
+    var hasNext: Bool {
+        !isSliderPhase && currentStep < steps.count - 1
+    }
+    
+    var hasBack: Bool {
+        currentStep > 0
+    }
+    
+    var isSliderPhase: Bool {
+        steps[currentStep].isSlider
     }
     
     func next() {
-        guard currentStep < steps.count - 1 else { return }
-        currentStep += 1
-        syncStep()
+        if currentStep < steps.count - 1 {
+            currentStep += 1
+            syncStep()
+        }
     }
     
     func back() {
-        guard currentStep > 0 else { return }
-        currentStep -= 1
-        
-        // CRITICAL: Reset scrub progress when going back into/before slider phase
-        // to prevent the 1.0 threshold from immediately calling next() again.
-        if currentStep <= 5 {
-            scrubProgress = 0.0
+        if currentStep > 0 {
+            currentStep -= 1
+            if currentStep <= 5 {
+                scrubProgress = steps[currentStep].progress
+            }
+            syncStep()
         }
-        
-        syncStep()
     }
     
     private func syncStep() {
         let data = steps[currentStep]
         novaText = data.text
-        highlightedStar = data.focus
         
-        // Update Scene Progress (except during slider)
         if !data.isSlider {
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.8)) {
+            withAnimation(.spring()) {
                 scrubProgress = data.progress
             }
         }
         
-        // Supernova Logic
+        // Supernova state management
         if currentStep >= 6 {
-            triggerSupernova()
-            startCinematicAutoAdvance()
+            if !isSupernovaTriggered { triggerSupernova() }
+            updateSupernovaNarrative()
         } else {
             isSupernovaTriggered = false
-            showContinue = false
-            isExpanding = false
-            cinematicTask?.cancel()
+            showNebula = false
+            showFlash = false
         }
         
         if currentStep == steps.count - 1 {
             showContinue = true
-            cinematicTask?.cancel() // Stop at the last step
         }
     }
     
-    private func startCinematicAutoAdvance() {
-        guard cinematicTask == nil else { return }
-        cinematicTask = Task {
-            while currentStep < steps.count - 1 {
-                try? await Task.sleep(nanoseconds: 6_000_000_000) // 6 seconds per beat
-                if Task.isCancelled { break }
-                await next()
+    private func triggerSupernova() {
+        isSupernovaTriggered = true
+        withAnimation { showFlash = true }
+        
+        Task {
+            try? await Task.sleep(nanoseconds: 3_500_000_000)
+            if Task.isCancelled { return }
+            
+            withAnimation(.easeOut) { self.showFlash = false }
+            self.showNebula = true
+            withAnimation(.easeIn(duration: 4.0)) {
+                self.nebulaOpacity = 0.85
+                self.nebulaScale = 1.2
             }
         }
     }
     
-    // MARK: - Slider Logic
+    private func updateSupernovaNarrative() {
+        // Sync days to steps
+        switch currentStep {
+        case 8: supernovaDay = 3; isExpanding = false
+        case 9: supernovaDay = 10; isExpanding = false
+        case 10...12: supernovaDay = 23; isExpanding = true
+        default: supernovaDay = 1; isExpanding = false
+        }
+    }
+    
+    // MARK: - Interaction
     
     func updateScrubProgress(_ value: Double) {
         guard isSliderPhase else { return }
         scrubProgress = value
         
-        // Synchronized Text Cues
+        // Git-style narrative updates during slider
         if value >= 0.85 {
             novaText = NovaCopy.Witness.inevitable
         } else if value >= 0.75 {
@@ -150,26 +163,8 @@ final class WitnessViewModel: ObservableObject {
             novaText = NovaCopy.Witness.approach30
         }
         
-        // AUTO-ADVANCE once only
-        if value >= 1.0 && currentStep == 5 {
+        if value >= 1.0 {
             next()
-        }
-    }
-    
-    private func triggerSupernova() {
-        isSupernovaTriggered = true
-        
-        // Days synced to narrative (based on 1054 AD records)
-        if currentStep == 8 {
-            supernovaDay = 3
-        } else if currentStep == 9 {
-            supernovaDay = 10
-        } else if currentStep >= 10 {
-            supernovaDay = 23
-            isExpanding = true
-        } else {
-            supernovaDay = 1
-            isExpanding = false
         }
     }
 }

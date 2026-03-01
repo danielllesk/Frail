@@ -1,8 +1,3 @@
-//
-//  WitnessView.swift
-//  Frail
-//
-
 import SwiftUI
 
 struct WitnessView: View {
@@ -13,60 +8,70 @@ struct WitnessView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                // 1. Background 3D Scene
+                // 1. Deep Space Background
+                Color.frailBackground
+                    .ignoresSafeArea()
+                
+                StarFieldView()
+                    .ignoresSafeArea()
+                
+                // 2. SwiftUI Nebula Layer
+                if vm.showNebula {
+                    NebulaLayer(opacity: vm.nebulaOpacity, scale: vm.nebulaScale)
+                }
+                
+                // 3. SceneKit Scene
                 BinaryStarScene(
                     progress: vm.scrubProgress,
-                    isSupernova: vm.isSupernovaTriggered,
-                    highlightedStar: vm.highlightedStar
+                    isSupernova: vm.isSupernovaTriggered
                 )
-                    .ignoresSafeArea()
-                    .opacity(vm.isExpanding ? 0.3 : 1.0)
+                .ignoresSafeArea()
                 
-                // 2. Cinematic Overlays (Now integrated into BinaryStarScene)
-                // SupernovaRevealView is removed in favor of 3D SceneKit rendering.
-                
-                if vm.currentStep >= 8 && vm.currentStep <= 10 {
-                    VStack {
-                        HStack {
-                            Spacer()
-                            WitnessTimer(dayCount: vm.supernovaDay, isExpanding: vm.isExpanding)
-                        }
-                        .padding(.top, 80)
-                        .padding(.trailing, 24)
-                        Spacer()
+                // 4. Cinematic Supernova Flash
+                if vm.showFlash {
+                    WitnessSupernovaFlash {
+                        withAnimation { vm.showFlash = false }
                     }
                 }
                 
-                VStack(spacing: 0) {
-                    // Header (Glassy minimalist)
-                    HStack {
-                        Button(action: onBack) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(.frailPrimaryText)
-                                .padding(12)
-                                .background(Circle().fill(Color.black.opacity(0.3)))
-                        }
-                        Spacer()
-                        Text("THE SPECTACLE")
-                            .font(.system(size: 12, weight: .black))
-                            .foregroundColor(.frailGold)
-                            .tracking(4)
-                        Spacer()
-                        Color.clear.frame(width: 44, height: 44)
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 24)
-                    
+                // 5. UI Overlay
+                InteractionOverlay(vm: vm, onBack: onBack)
+            }
+            .coordinateSpace(name: "appRoot")
+            .onAppear {
+                vm.start()
+            }
+        }
+    }
+}
+
+struct InteractionOverlay: View {
+    @ObservedObject var vm: WitnessViewModel
+    let onBack: () -> Void
+    @EnvironmentObject var nova: NovaController
+    
+    var body: some View {
+        VStack {
+            // Day Counter (Top Right)
+            if vm.currentStep >= 7 && vm.currentStep <= 10 {
+                HStack {
                     Spacer()
-                    
-                    // UNIFIED NARRATIVE PANEL
-                    VStack(spacing: 0) {
-                        // 1. Content Area (Nova + Text)
-                        HStack(alignment: .top, spacing: 16) {
-                            // Nova Avatar Slot
+                    WitnessTimer(dayCount: vm.supernovaDay, isExpanding: vm.isExpanding)
+                }
+                .padding(.top, 60)
+                .padding(.trailing, 24)
+            }
+            
+            Spacer()
+            
+            if vm.showNovaBubble {
+                VStack(spacing: 0) {
+                    // 1. Narrative Content Area
+                    VStack {
+                        HStack(alignment: .top, spacing: 20) {
+                            // Nova Slot
                             Color.clear
-                                .frame(width: 54, height: 54)
+                                .frame(width: 44, height: 44)
                                 .overlay(
                                     GeometryReader { slotGeo in
                                         Color.clear.preference(
@@ -122,11 +127,8 @@ struct WitnessView: View {
                                             .foregroundColor(.frailGold.opacity(0.8))
                                             .tracking(1)
                                         
-                                        Slider(value: $vm.scrubProgress, in: 0...1)
+                                        Slider(value: Binding(get: { vm.scrubProgress }, set: { vm.updateScrubProgress($0) }), in: 0...1)
                                             .tint(.frailAccent)
-                                            .onChange(of: vm.scrubProgress) { newValue in
-                                                vm.updateScrubProgress(newValue)
-                                            }
                                     }
                                     
                                     Text("\(Int(vm.scrubProgress * 100))%")
@@ -205,11 +207,150 @@ struct WitnessView: View {
                     }
                 }
             }
-            .onAppear {
-                vm.start()
+        }
+    }
+}
+
+// MARK: - Sub-components
+
+struct NebulaLayer: View {
+    let opacity: Double
+    let scale: CGFloat
+    
+    var body: some View {
+        Image("crab_nebula")
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .blendMode(.screen)
+            .opacity(opacity)
+            .scaleEffect(scale)
+            .ignoresSafeArea()
+    }
+}
+
+// MARK: - Cinematic Flash Component
+
+@MainActor
+struct WitnessSupernovaFlash: View {
+    let onComplete: @MainActor @Sendable () -> Void
+    @State private var startTime: Date? = nil
+    @State private var flashOpacity: Double = 1.0
+    @State private var flashScale: CGFloat = 0.1
+    @State private var ringOpacity: Double = 0.0
+    @State private var ringScale: CGFloat = 0.1
+    private let particles: [WitnessParticle]
+
+    struct WitnessParticle {
+        let angle: Double
+        let speed: Double
+        let size: CGFloat
+        let color: Color
+        let layer: Int 
+    }
+
+    init(onComplete: @escaping @MainActor @Sendable () -> Void) {
+        self.onComplete = onComplete
+        var p: [WitnessParticle] = []
+        // Inner white core
+        for _ in 0..<80 {
+            p.append(WitnessParticle(
+                angle: Double.random(in: 0...(.pi * 2)),
+                speed: Double.random(in: 300...600),
+                size: CGFloat.random(in: 4...10),
+                color: .white,
+                layer: 0
+            ))
+        }
+        // Mid orange sparks
+        for _ in 0..<120 {
+            p.append(WitnessParticle(
+                angle: Double.random(in: 0...(.pi * 2)),
+                speed: Double.random(in: 150...350),
+                size: CGFloat.random(in: 3...7),
+                color: [Color.orange, Color(red: 1, green: 0.6, blue: 0.2)].randomElement()!,
+                layer: 1
+            ))
+        }
+        // Outer blue wisps
+        for _ in 0..<60 {
+            p.append(WitnessParticle(
+                angle: Double.random(in: 0...(.pi * 2)),
+                speed: Double.random(in: 80...200),
+                size: CGFloat.random(in: 2...5),
+                color: [Color.frailAccent, Color(red: 0.6, green: 0.8, blue: 1.0)].randomElement()!,
+                layer: 1
+            ))
+        }
+        self.particles = p
+    }
+
+    var body: some View {
+        ZStack {
+            // Flash core
+            Circle()
+                .fill(Color.white)
+                .frame(width: 40, height: 40)
+                .scaleEffect(flashScale)
+                .opacity(flashOpacity)
+                .blur(radius: 8)
+
+            // Expanding ring
+            Circle()
+                .stroke(Color.orange.opacity(0.8), lineWidth: 3)
+                .frame(width: 200, height: 200)
+                .scaleEffect(ringScale)
+                .opacity(ringOpacity)
+                .blur(radius: 2)
+
+            // Particles
+            TimelineView(.animation) { timeline in
+                Canvas { context, size in
+                    guard let start = startTime else { return }
+                    let elapsed = timeline.date.timeIntervalSince(start)
+
+                    for p in particles {
+                        let distance = p.speed * elapsed
+                        let px = size.width/2 + cos(p.angle) * distance
+                        let py = size.height/2 + sin(p.angle) * distance
+                        let opacity = max(0, 1.0 - (distance / 700))
+                        guard opacity > 0 else { continue }
+
+                        let rect = CGRect(
+                            x: px - p.size/2,
+                            y: py - p.size/2,
+                            width: p.size,
+                            height: p.size
+                        )
+                        context.opacity = opacity
+                        context.fill(Circle().path(in: rect), with: .color(p.color))
+                    }
+                }
             }
-            .onDisappear {
-                // Task cancellation is now handled by StateObject lifecycle
+        }
+        .ignoresSafeArea()
+        .onAppear {
+            startTime = Date()
+            HapticEngine.shared.playSupernova()
+
+            withAnimation(.easeOut(duration: 0.4)) {
+                flashScale = 8.0
+                flashOpacity = 1.0
+            }
+            withAnimation(.easeIn(duration: 1.2).delay(0.4)) {
+                flashOpacity = 0.0
+            }
+            withAnimation(.easeOut(duration: 2.5)) {
+                ringScale = 6.0
+                ringOpacity = 0.6
+            }
+            withAnimation(.easeIn(duration: 1.5).delay(1.5)) {
+                ringOpacity = 0.0
+            }
+            
+            Task {
+                try? await Task.sleep(nanoseconds: 3_500_000_000)
+                onComplete()
             }
         }
     }

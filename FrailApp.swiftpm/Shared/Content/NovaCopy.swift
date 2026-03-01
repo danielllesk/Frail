@@ -139,7 +139,31 @@ struct NovaCopy {
         static let lightDelay = "The light reaching Earth right now left this star 6,500 years ago. You are watching the past. The star no longer exists. It has not existed for 6,500 years."
         static let expanding = "Inside that nebula are elements that did not exist before this star died. Carbon. Oxygen. Iron. The same elements we found in the lessons — forged in stars, released only in moments like this."
         static let closing = "The calcium in your bones was produced in a supernova. Possibly one very much like this. You are not separate from what you just watched. You are a later chapter of it."
-        static let thesis = "The universe is precise enough to create beauty. And precise enough to end it. Both are the same precision. Both are why you are here."
+        static let thesis = "The universe is precise enough to create beauty. And precise enough to end it. Both are why you are here."
+        
+        struct Step: Identifiable {
+            let id = UUID()
+            let text: String
+            let progress: Double?
+        }
+        
+        static let progression: [Step] = [
+            Step(text: intro, progress: 0.0),            // 0
+            Step(text: naming, progress: 0.0),           // 1
+            Step(text: starA, progress: 0.0),            // 2
+            Step(text: starB, progress: 0.0),            // 3
+            Step(text: starBClose, progress: 0.0),        // 4
+            Step(text: approach30, progress: 0.3),       // 5
+            Step(text: approach60, progress: 0.6),       // 6
+            Step(text: inevitable, progress: 1.0),       // 7 (Collision)
+            Step(text: flash, progress: 1.0),            // 8 (Explosion 1)
+            Step(text: hubble, progress: 1.0),           // 9 (Aftermath 1)
+            Step(text: yangWeide, progress: 1.0),        // 10 (Aftermath 2)
+            Step(text: lightDelay, progress: 1.0),       // 11
+            Step(text: expanding, progress: 1.0),        // 12
+            Step(text: closing, progress: 1.0),          // 13
+            Step(text: thesis, progress: 1.0)            // 14
+        ]
     }
     
     // Compatibility for mapping

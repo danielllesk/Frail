@@ -295,6 +295,38 @@ final class HapticEngine {
             print("Challenge wrong haptic error: \(error)")
         }
     }
+    
+    func playSupernova() {
+        notifyDebug(1.0)
+        guard let engine = engine else { return }
+        
+        // Multi-stage explosion impact
+        let peak = CHHapticEvent(
+            eventType: .hapticTransient,
+            parameters: [
+                CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
+                CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.8)
+            ],
+            relativeTime: 0
+        )
+        
+        let echo = CHHapticEvent(
+            eventType: .hapticTransient,
+            parameters: [
+                CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.7),
+                CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.4)
+            ],
+            relativeTime: 0.1
+        )
+        
+        do {
+            let pattern = try CHHapticPattern(events: [peak, echo], parameters: [])
+            let player = try engine.makePlayer(with: pattern)
+            try player.start(atTime: 0)
+        } catch {
+            print("Supernova haptic error: \(error)")
+        }
+    }
 }
 
 extension Float {
