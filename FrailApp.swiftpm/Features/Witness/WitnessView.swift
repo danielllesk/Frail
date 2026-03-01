@@ -37,6 +37,29 @@ struct WitnessView: View {
                 
                 // 5. UI Overlay
                 InteractionOverlay(vm: vm, onBack: onBack)
+                
+                // 6. Global Exit Button (Top Left)
+                VStack {
+                    HStack {
+                        Button(action: onBack) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(width: 44, height: 44)
+                                .background(
+                                    Circle()
+                                        .fill(.ultraThinMaterial)
+                                        .overlay(Circle().stroke(Color.white.opacity(0.2), lineWidth: 0.5))
+                                )
+                                .shadow(color: .black.opacity(0.3), radius: 10)
+                        }
+                        .padding(.top, 60)
+                        .padding(.leading, 24)
+                        
+                        Spacer()
+                    }
+                    Spacer()
+                }
             }
             .offset(x: shakeOffset)
             .coordinateSpace(name: "appRoot")
