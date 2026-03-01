@@ -23,3 +23,17 @@ xcuserdata/
 
 # Local docs / planning
 plan.txt
+
+# Prevent accidental duplicates (macOS "copy" style)
+*[\ ]*.swiftpm/
+*[\ ]*.swiftpm
+*[\ ]2.swiftpm/
+*[\ ]2.swiftpm
+
+# Prevent loose assets/backups
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.zip
+!FrailApp.swiftpm/**

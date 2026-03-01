@@ -94,8 +94,7 @@ struct IntroView: View {
                         Spacer()
                         
                         // Nova + speech bubble, centered horizontally
-                        let hasLaunched = UserDefaults.standard.bool(forKey: "hasLaunched")
-                        if hasLaunched && showWelcome {
+                        if showWelcome {
                             HStack(alignment: .top, spacing: 8) {
                                 // Nova slot — reports position via preference key
                                 Color.clear
@@ -191,11 +190,25 @@ struct IntroView: View {
                 sequenceTask?.cancel()
                 sequenceTask = nil
             }
-            .onChange(of: geo.size) { _ in
-                nova.updateOrbitCenter(
-                    cx: geo.size.width / 2,
-                    cy: geo.size.height * 0.48
-                )
+            .onChange(of: geo.size) { newSize in
+                let cx = newSize.width / 2
+                let cy = newSize.height * 0.48
+                nova.updateOrbitCenter(cx: cx, cy: cy)
+                
+                // Backup start: if geometry just settled and we are in orbit phase but not orbiting yet
+                if earthVisible && !didTap && !nova.isOrbiting && cx > 0 {
+                    nova.orbitAround(cx: cx, cy: cy, radius: 340)
+                }
+            }
+            .onChange(of: earthVisible) { visible in
+                // Primary start: trigger orbit as soon as Earth appears
+                if visible && !didTap && !nova.isOrbiting {
+                    let cx = geo.size.width / 2
+                    let cy = geo.size.height * 0.48
+                    if cx > 0 {
+                        nova.orbitAround(cx: cx, cy: cy, radius: 340)
+                    }
+                }
             }
         }
     }
@@ -290,8 +303,14 @@ struct IntroView: View {
             withAnimation(.easeIn(duration: 1.5)) {
                 earthVisible = true
             }
-            // Tell NovaController to start orbiting around Earth
-            nova.orbitAround(cx: earthCX, cy: earthCY, radius: 340)
+            
+            // Tell NovaController to start orbiting around Earth as fallback
+            // Primary trigger is now earthVisible onChange for better timing
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            guard !Task.isCancelled else { return }
+            if earthVisible && !didTap && !nova.isOrbiting {
+                nova.orbitAround(cx: earthCX, cy: earthCY, radius: 340)
+            }
             
             // t=6.5s — "Tap anywhere" appears
             try? await Task.sleep(nanoseconds: 1_900_000_000)
