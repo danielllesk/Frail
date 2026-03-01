@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 @MainActor
 class WitnessViewModel: ObservableObject {
@@ -21,6 +20,8 @@ class WitnessViewModel: ObservableObject {
     @Published var nebulaOpacity: Double = 0.0
     @Published var nebulaScale: CGFloat = 0.9
     
+    private var triggerTask: Task<Void, Error>? = nil
+    
     // Step Mapping
     struct StepData {
         let text: String
@@ -29,29 +30,30 @@ class WitnessViewModel: ObservableObject {
         let focus: String?
     }
     
-    private var steps: [StepData] {
-        [
-            StepData(text: NovaCopy.Witness.intro, progress: 0.0, isSlider: false, focus: nil), // 0
-            StepData(text: NovaCopy.Witness.naming, progress: 0.0, isSlider: false, focus: nil), // 1
-            StepData(text: NovaCopy.Witness.starA, progress: 0.0, isSlider: false, focus: "starA"), // 2
-            StepData(text: NovaCopy.Witness.starB, progress: 0.0, isSlider: false, focus: "starB"), // 3
-            StepData(text: NovaCopy.Witness.starBClose, progress: 0.0, isSlider: false, focus: "starB"), // 4
-            StepData(text: NovaCopy.Witness.approach30, progress: 0.3, isSlider: true, focus: nil), // 5 (Slider Start)
-            StepData(text: NovaCopy.Witness.flash, progress: 1.0, isSlider: false, focus: nil), // 6 (Explosion Phase)
-            StepData(text: NovaCopy.Witness.hubble, progress: 1.0, isSlider: false, focus: nil), // 7
-            StepData(text: NovaCopy.Witness.yangWeide, progress: 1.0, isSlider: false, focus: nil), // 8
-            StepData(text: NovaCopy.Witness.lightDelay, progress: 1.0, isSlider: false, focus: nil), // 9
-            StepData(text: NovaCopy.Witness.expanding, progress: 1.0, isSlider: false, focus: nil), // 10
-            StepData(text: NovaCopy.Witness.closing, progress: 1.0, isSlider: false, focus: nil), // 11
-            StepData(text: NovaCopy.Witness.thesis, progress: 1.0, isSlider: false, focus: nil) // 12
-        ]
-    }
+    private let steps: [StepData] = [
+        StepData(text: NovaCopy.Witness.intro, progress: 0.0, isSlider: false, focus: nil), // 0
+        StepData(text: NovaCopy.Witness.naming, progress: 0.0, isSlider: false, focus: nil), // 1
+        StepData(text: NovaCopy.Witness.starA, progress: 0.0, isSlider: false, focus: "starA"), // 2
+        StepData(text: NovaCopy.Witness.starB, progress: 0.0, isSlider: false, focus: "starB"), // 3
+        StepData(text: NovaCopy.Witness.starBClose, progress: 0.0, isSlider: false, focus: "starB"), // 4
+        StepData(text: NovaCopy.Witness.approach30, progress: 0.3, isSlider: true, focus: nil), // 5 (Slider Start)
+        StepData(text: NovaCopy.Witness.flash, progress: 1.0, isSlider: false, focus: nil), // 6 (Explosion Phase)
+        StepData(text: NovaCopy.Witness.hubble, progress: 1.0, isSlider: false, focus: nil), // 7
+        StepData(text: NovaCopy.Witness.yangWeide, progress: 1.0, isSlider: false, focus: nil), // 8
+        StepData(text: NovaCopy.Witness.lightDelay, progress: 1.0, isSlider: false, focus: nil), // 9
+        StepData(text: NovaCopy.Witness.expanding, progress: 1.0, isSlider: false, focus: nil), // 10
+        StepData(text: NovaCopy.Witness.closing, progress: 1.0, isSlider: false, focus: nil), // 11
+        StepData(text: NovaCopy.Witness.thesis, progress: 1.0, isSlider: false, focus: nil) // 12
+    ]
     
     init() {
         syncStep()
     }
     
     func start() {
+        triggerTask?.cancel()
+        triggerTask = nil
+        
         currentStep = 0
         scrubProgress = 0.0
         isSupernovaTriggered = false
@@ -61,7 +63,7 @@ class WitnessViewModel: ObservableObject {
         showFlash = false
         showNebula = false
         nebulaOpacity = 0.0
-        nebulaScale = 0.9
+        nebulaScale = 0.8
         syncStep()
     }
     
@@ -112,9 +114,15 @@ class WitnessViewModel: ObservableObject {
             if !isSupernovaTriggered { triggerSupernova() }
             updateSupernovaNarrative()
         } else {
+            // CRITICAL RESET for backward navigation
+            triggerTask?.cancel()
+            triggerTask = nil
+            
             isSupernovaTriggered = false
             showNebula = false
             showFlash = false
+            nebulaOpacity = 0.0
+            nebulaScale = 0.8
         }
         
         if currentStep == steps.count - 1 {
@@ -130,7 +138,8 @@ class WitnessViewModel: ObservableObject {
         self.nebulaOpacity = 0
         self.nebulaScale = 0.8
         
-        Task {
+        triggerTask?.cancel()
+        triggerTask = Task {
             try? await Task.sleep(nanoseconds: 3_500_000_000)
             if Task.isCancelled { return }
             

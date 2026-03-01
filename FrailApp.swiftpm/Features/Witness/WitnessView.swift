@@ -427,11 +427,11 @@ struct WitnessSupernovaFlash: View {
             withAnimation(.easeIn(duration: 1.5).delay(1.5)) {
                 ringOpacity = 0.0
             }
-            
-            Task {
-                try? await Task.sleep(nanoseconds: 3_500_000_000)
-                onComplete()
-            }
+        }
+        .task {
+            // Native SwiftUI task handles cancellation automatically on view removal
+            try? await Task.sleep(nanoseconds: 3_500_000_000)
+            onComplete()
         }
     }
 }
